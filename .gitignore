@@ -1,0 +1,12 @@
+# Log file
+*.log
+
+# Markup definition
+*.xml
+
+# Cache file
+*.DS_Store
+
+*.iml
+*.ipr
+*.iws
