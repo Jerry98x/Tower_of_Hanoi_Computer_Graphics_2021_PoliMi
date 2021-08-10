@@ -1,3 +1,35 @@
+var mouseState = false;
+var lastMouseX = -100, lastMouseY = -100;
+function doMouseDown(event) {
+    lastMouseX = event.pageX;
+    lastMouseY = event.pageY;
+    mouseState = true;
+}
+function doMouseUp(event) {
+    lastMouseX = -100;
+    lastMouseY = -100;
+    mouseState = false;
+}
+function doMouseMove(event) {
+    if(mouseState) {
+        var dx = event.pageX - lastMouseX;
+        var dy = lastMouseY - event.pageY;
+        lastMouseX = event.pageX;
+        lastMouseY = event.pageY;
+
+        if((dx != 0) || (dy != 0)) {
+            angle = angle + 0.5 * dx;
+            elevation = elevation + 0.5 * dy;
+        }
+    }
+}
+function doMouseWheel(event) {
+    var nLookRadius = lookRadius + event.wheelDelta/1000.0;
+    if((nLookRadius > 2.0) && (nLookRadius < 20.0)) {
+        lookRadius = nLookRadius;
+    }
+}
+
 function computeModelData(object) {
     object.drawInfo.vertices = models[object.drawInfo.name].vertices;
     object.drawInfo.indices = models[object.drawInfo.name].indices;
@@ -37,12 +69,20 @@ function createBuffers(object) {
     return vao;
 }
 
-async function serializeModel(object) {
-    modelsSerialized[object.drawInfo.name] = await utils.get_objstr(object.drawInfo.modelSrc);
+async function serializeModel() {
+    for(let i=0; i<modelsSrc.length; i++) {
+        modelsSerialized[i] = await utils.get_objstr(modelsSrc[i]);
+    }
 }
 
-function getModel(object) {
-    models[object.drawInfo.name] = new OBJ.Mesh(modelsSerialized[object.drawInfo.name]);
+function getModel() {
+    for(let i=0; i<modelsSerialized.length; i++){
+        if(i==0){
+            models[baseName] = new OBJ.Mesh(modelsSerialized[0]);
+        } else {
+            models[i.toString()] = new OBJ.Mesh(modelsSerialized[i]);
+        }
+    }
 }
 
 var main = function (){
@@ -52,8 +92,12 @@ var main = function (){
 
     computeSceneGraph();
 
+    window.addEventListener("mousedown", doMouseDown, false);
+    window.addEventListener("mouseup", doMouseUp, false);
+    window.addEventListener("mousemove", doMouseMove, false);
+    window.addEventListener("mousewheel", doMouseWheel, false);
+
     objects.forEach(function (object) {
-        console.log(object);
         gl.useProgram(object.drawInfo.programInfo);
         object.drawInfo.eyePositionHandle = gl.getUniformLocation(object.drawInfo.programInfo, 'eyePosition');
         object.drawInfo.positionAttributeLocation = gl.getAttribLocation(object.drawInfo.programInfo, "inPosition");
@@ -102,7 +146,7 @@ var main = function (){
 
         // Compute the perspective matrix
         var aspect = gl.canvas.width / gl.canvas.height;
-        perspectiveMatrix = utils.MakePerspective(60.0, aspect, 1, 5000.0);
+        perspectiveMatrix = utils.MakePerspective(90.0, aspect, 0.1, 100.0);
 
         //added
         // update WV matrix
@@ -120,7 +164,7 @@ var main = function (){
         var count = 0;
         objects.forEach(function(object){
             if (object.drawInfo.name.includes('boat')) {
-                interactableObjects[count] = [[object.worldMatrix[3], object.worldMatrix[7], object.worldMatrix[11]], 500];
+                interactableObjects[count] = [[object.node.worldMatrix[3], object.node.worldMatrix[7], object.node.worldMatrix[11]], 500];
                 count++;
             }
         });
@@ -134,12 +178,12 @@ var main = function (){
 
             var eyePos = [cx, cy, cz];
 
-            var projMatrix = utils.multiplyMatrices(viewMatrix, object.worldMatrix);
+            var projMatrix = utils.multiplyMatrices(viewMatrix, object.node.worldMatrix);
             projMatrix = utils.multiplyMatrices(perspectiveMatrix, projMatrix);
-            var normalMatrix = utils.invertMatrix(utils.transposeMatrix(object.worldMatrix));
+            var normalMatrix = utils.invertMatrix(utils.transposeMatrix(object.node.worldMatrix));
             gl.uniformMatrix4fv(object.drawInfo.matrixLocation, gl.FALSE, utils.transposeMatrix(projMatrix));
             gl.uniformMatrix4fv(object.drawInfo.normalMatrixPositionHandle, gl.FALSE, utils.transposeMatrix(normalMatrix));
-            gl.uniformMatrix4fv(object.drawInfo.vertexMatrixPositionHandle, gl.FALSE, utils.transposeMatrix(object.worldMatrix));
+            gl.uniformMatrix4fv(object.drawInfo.vertexMatrixPositionHandle, gl.FALSE, utils.transposeMatrix(object.node.worldMatrix));
             gl.uniform3fv(object.drawInfo.eyePositionHandle, eyePos);
 
 
@@ -209,8 +253,9 @@ var init = async function() {
     //
     // Load models
     //
-    objects.forEach(serializeModel);
-    objects.forEach(getModel);
+    await serializeModel();
+    getModel();
+
 
     // Initialize lights
     //initiLight();
