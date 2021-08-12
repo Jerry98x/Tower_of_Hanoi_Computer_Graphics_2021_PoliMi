@@ -9,7 +9,7 @@ out vec3 fsPos;
 out vec2 uvCoordinate;
 
 uniform mat4 matrix; 
-uniform mat4 nMatrix;     //matrix to transform normals
+uniform mat4 nMatrix;
 uniform mat4 pMatrix;
 
 void main() {

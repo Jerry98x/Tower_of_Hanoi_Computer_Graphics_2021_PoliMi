@@ -1,3 +1,8 @@
+var gl;
+var baseDir;
+var shaderDir;
+var program;
+
 var mouseState = false;
 var lastMouseX = -100, lastMouseY = -100;
 function doMouseDown(event) {
@@ -43,7 +48,7 @@ function createBuffers(object) {
 
     // Vertices
     var vertexBuffer = gl.createBuffer();
-    gl.bindBuffer(gl.ARRAY_BUFFER,vertexBuffer);
+    gl.bindBuffer(gl.ARRAY_BUFFER, vertexBuffer);
     gl.bufferData(gl.ARRAY_BUFFER, new Float32Array(object.drawInfo.vertices), gl.STATIC_DRAW);
     gl.enableVertexAttribArray(object.drawInfo.positionAttributeLocation);
     gl.vertexAttribPointer(object.drawInfo.positionAttributeLocation, 3, gl.FLOAT, false, 0, 0);
@@ -153,8 +158,14 @@ var main = function (){
         cz = lookRadius * Math.cos(utils.degToRad(-angle)) * Math.cos(utils.degToRad(-elevation));
         cx = lookRadius * Math.sin(utils.degToRad(-angle)) * Math.cos(utils.degToRad(-elevation));
         cy = lookRadius * Math.sin(utils.degToRad(-elevation));
+        var directionalLight = [cz, cy, cx];
         viewMatrix = utils.MakeView(cx, cy, cz, -elevation, -angle);
 
+
+        var directionalLightColor = [0.1, 1.0, 1.0];
+
+        var lightDirectionHandle = gl.getUniformLocation(program, 'lightDirection');
+        var lightColorHandle = gl.getUniformLocation(program, 'lightColor');
 
         // Update all world matrices in the scene graph
         cameraPositionNode.updateWorldMatrix();
@@ -178,19 +189,24 @@ var main = function (){
 
             var eyePos = [cx, cy, cz];
 
-            var projMatrix = utils.multiplyMatrices(viewMatrix, object.node.worldMatrix);
-            projMatrix = utils.multiplyMatrices(perspectiveMatrix, projMatrix);
-            var normalMatrix = utils.invertMatrix(utils.transposeMatrix(object.node.worldMatrix));
+            var worldViewMatrix = utils.multiplyMatrices(viewMatrix, object.node.worldMatrix);
+            var projMatrix = utils.multiplyMatrices(perspectiveMatrix, worldViewMatrix);
+            var normalMatrix = utils.invertMatrix(utils.transposeMatrix(worldViewMatrix));
+
+            //Transform from World Space to Camera Space
+            var lightDirMatrix = utils.invertMatrix(utils.transposeMatrix(viewMatrix));
+            var directionalLightTransformed = utils.multiplyMatrix3Vector3(utils.sub3x3from4x4((lightDirMatrix)), directionalLight);
+
             gl.uniformMatrix4fv(object.drawInfo.matrixLocation, gl.FALSE, utils.transposeMatrix(projMatrix));
             gl.uniformMatrix4fv(object.drawInfo.normalMatrixPositionHandle, gl.FALSE, utils.transposeMatrix(normalMatrix));
-            gl.uniformMatrix4fv(object.drawInfo.vertexMatrixPositionHandle, gl.FALSE, utils.transposeMatrix(object.node.worldMatrix));
+            gl.uniformMatrix4fv(object.drawInfo.vertexMatrixPositionHandle, gl.FALSE, utils.transposeMatrix(worldViewMatrix));
             gl.uniform3fv(object.drawInfo.eyePositionHandle, eyePos);
 
 
             // Shaders for point light for room and scenary
             gl.uniform3fv(materialDiffColorHandle, [1.0, 1.0, 1.0]);
-            gl.uniform3fv(lightColorHandle, pointLightColor);
-            gl.uniform3fv(lightPositionHandle, positionLight);
+            gl.uniform3fv(lightColorHandle, directionalLightColor);
+            gl.uniform3fv(lightDirectionHandle, directionalLightTransformed);
 
 
             // Render the Texture
