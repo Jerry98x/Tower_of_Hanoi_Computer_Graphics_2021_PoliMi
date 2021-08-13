@@ -35,11 +35,108 @@ function doMouseWheel(event) {
     }
 }
 
-function computeModelData(object) {
-    object.drawInfo.vertices = models[object.drawInfo.name].vertices;
-    object.drawInfo.indices = models[object.drawInfo.name].indices;
-    object.drawInfo.normals = models[object.drawInfo.name].vertexNormals;
-    object.drawInfo.texCoord = models[object.drawInfo.name].textures;
+function keyFunctionDown(event) {
+    switch (event.keyCode) {
+        case 68:
+            //move camera to the right
+            if(angle-step > 30) {
+                angle -= step;
+            }
+            break;
+        case 65:
+            //move camera to the left
+            if(angle+step < 150) {
+                angle += step;
+            }
+            break;
+        case 81:
+            //high camera
+            if(elevation-step > 30) {
+                elevation -= step;
+            }
+            break;
+        case 69:
+            //low camera
+            if(elevation+step < 150) {
+                elevation += step;
+            }
+            break;
+        case 87:
+            //zoom in
+            if(lookRadius-step > 10){
+                lookRadius -= step;
+            }
+            break;
+        case 83:
+            //zoom out
+            if(lookRadius+step < 80){
+                lookRadius += step;
+            }
+            break;
+        case 49:
+            //rod 1
+            if(!floating) {
+                floating = true;
+                floatingDisc = startRod.getHighestDisc();
+                floatingDisc.float();
+                startingRod = 1;
+                currentRod = startingRod;
+            }
+            break;
+        case 50:
+            //rod 2
+            if(!floating) {
+                floating = true;
+                floatingDisc = middleRod.getHighestDisc();
+                floatingDisc.float();
+                startingRod = 2;
+                currentRod = startingRod;
+            }
+            break;
+        case 51:
+            //rod 3
+            if(!floating) {
+                floating = true;
+                floatingDisc = endRod.getHighestDisc();
+                floatingDisc.float();
+                startingRod = 3;
+                currentRod = startingRod;
+            }
+            break;
+        case 37:
+            //shift left
+            if(floating && currentRod != 1) {
+                currentRod--;
+                floatingDisc.shift(false);
+                //TODO update texture
+            }
+            break;
+        case 39:
+            //shift right
+            if(floating && currentRod != 3) {
+                currentRod++;
+                floatingDisc.shift(true);
+                //TODO update texture
+            }
+            break;
+        case 13:
+            //accept rod
+            if(floating && floatingDisc.canMove){
+                floatingDisc.land();
+                startingRod = currentRod;
+                floating = false;
+            }
+            break;
+    }
+}
+
+function computeModelData() {
+    for(let i=0; i<objects.length; i++){
+        objects[i].drawInfo.vertices = models[i].vertices;
+        objects[i].drawInfo.indices = models[i].indices;
+        objects[i].drawInfo.normals = models[i].vertexNormals;
+        objects[i].drawInfo.texCoord = models[i].textures;
+    }
 }
 
 function createBuffers(object) {
@@ -81,12 +178,8 @@ async function serializeModel() {
 }
 
 function getModel() {
-    for(let i=0; i<modelsSerialized.length; i++){
-        if(i==0){
-            models[baseName] = new OBJ.Mesh(modelsSerialized[0]);
-        } else {
-            models[i.toString()] = new OBJ.Mesh(modelsSerialized[i]);
-        }
+    for(let i=0; i<modelsSerialized.length; i++) {
+        models[i] = new OBJ.Mesh(modelsSerialized[i]);
     }
 }
 
@@ -101,6 +194,7 @@ var main = function (){
     window.addEventListener("mouseup", doMouseUp, false);
     window.addEventListener("mousemove", doMouseMove, false);
     window.addEventListener("mousewheel", doMouseWheel, false);
+    window.addEventListener("keydown", keyFunctionDown, false);
 
     objects.forEach(function (object) {
         gl.useProgram(object.drawInfo.programInfo);
@@ -114,15 +208,10 @@ var main = function (){
         object.drawInfo.vertexMatrixPositionHandle = gl.getUniformLocation(object.drawInfo.programInfo, 'pMatrix');
     });
 
-    objects.forEach(function(object) {
-
-        computeModelData(object);
-    });
+    computeModelData();
 
     objects.forEach(function (object) {
-
         object.drawInfo.vertexArray = createBuffers(object);
-
         // End binding sequence
         gl.bindVertexArray(null);
     });
@@ -155,11 +244,19 @@ var main = function (){
 
         //added
         // update WV matrix
-        cz = lookRadius * Math.cos(utils.degToRad(-angle)) * Math.cos(utils.degToRad(-elevation));
-        cx = lookRadius * Math.sin(utils.degToRad(-angle)) * Math.cos(utils.degToRad(-elevation));
-        cy = lookRadius * Math.sin(utils.degToRad(-elevation));
-        var directionalLight = [cz, cy, cx];
-        viewMatrix = utils.MakeView(cx, cy, cz, -elevation, -angle);
+        cx = lookRadius * Math.sin(utils.degToRad(elevation)) * Math.cos(utils.degToRad(angle));
+        cy = lookRadius * Math.cos(utils.degToRad(elevation)) + eyeHeight;
+        cz = lookRadius * Math.sin(utils.degToRad(elevation)) * Math.sin(utils.degToRad(angle));
+        var cameraPosition = [cx, cy, cz];
+        var target = [0.0, eyeHeight, -10.0];
+        var up = [0.0, 1.0, 0.0];
+        var cameraMatrix = utils.LookAt(cameraPosition, target, up);
+        var viewMatrix = utils.invertMatrix(cameraMatrix);
+
+        lz = lightRadius * Math.cos(utils.degToRad(-lightAngle)) * Math.cos(utils.degToRad(-lightElevation));
+        lx = lightRadius * Math.sin(utils.degToRad(-lightAngle)) * Math.cos(utils.degToRad(-lightElevation));
+        ly = lightRadius * Math.sin(utils.degToRad(-lightElevation));
+        var directionalLight = [lz, ly, lx];
 
 
         var directionalLightColor = [0.1, 1.0, 1.0];
@@ -169,18 +266,6 @@ var main = function (){
 
         // Update all world matrices in the scene graph
         cameraPositionNode.updateWorldMatrix();
-
-        /*
-        // Save interactable objects positions [x, y, z, r]
-        var count = 0;
-        objects.forEach(function(object){
-            if (object.drawInfo.name.includes('boat')) {
-                interactableObjects[count] = [[object.node.worldMatrix[3], object.node.worldMatrix[7], object.node.worldMatrix[11]], 500];
-                count++;
-            }
-        });
-
-         */
 
         // Compute all the matrices for rendering
         objects.forEach(function(object) {
