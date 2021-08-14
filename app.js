@@ -75,7 +75,7 @@ function keyFunctionDown(event) {
             break;
         case 49:
             //rod 1
-            if(!floating) {
+            if(!floating && startRod.length>0) {
                 floating = true;
                 floatingDisc = startRod.getHighestDisc();
                 floatingDisc.float();
@@ -85,7 +85,7 @@ function keyFunctionDown(event) {
             break;
         case 50:
             //rod 2
-            if(!floating) {
+            if(!floating && middleRod.length>0) {
                 floating = true;
                 floatingDisc = middleRod.getHighestDisc();
                 floatingDisc.float();
@@ -95,7 +95,7 @@ function keyFunctionDown(event) {
             break;
         case 51:
             //rod 3
-            if(!floating) {
+            if(!floating && endRod.length>0) {
                 floating = true;
                 floatingDisc = endRod.getHighestDisc();
                 floatingDisc.float();
@@ -107,6 +107,7 @@ function keyFunctionDown(event) {
             //shift left
             if(floating && currentRod != 1) {
                 currentRod--;
+                xPast -= 15.0;
                 floatingDisc.shift(false);
                 //TODO update texture
             }
@@ -115,15 +116,17 @@ function keyFunctionDown(event) {
             //shift right
             if(floating && currentRod != 3) {
                 currentRod++;
+                xPast += 15.0;
                 floatingDisc.shift(true);
                 //TODO update texture
             }
             break;
         case 13:
             //accept rod
-            if(floating && floatingDisc.canMove){
+            if(floating && getRod(startingRod).checkMoveDisc(getRod(currentRod))){
                 floatingDisc.land();
                 startingRod = currentRod;
+                xPast = 0.0;
                 floating = false;
             }
             break;
