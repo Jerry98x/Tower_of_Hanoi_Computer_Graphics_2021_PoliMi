@@ -107,8 +107,7 @@ function keyFunctionDown(event) {
             //shift left
             if(floating && currentRod != 1) {
                 currentRod--;
-                xPast -= 15.0;
-                floatingDisc.shift(false);
+                floatingDisc.shift();
                 //TODO update texture
             }
             break;
@@ -116,8 +115,7 @@ function keyFunctionDown(event) {
             //shift right
             if(floating && currentRod != 3) {
                 currentRod++;
-                xPast += 15.0;
-                floatingDisc.shift(true);
+                floatingDisc.shift();
                 //TODO update texture
             }
             break;
@@ -126,7 +124,6 @@ function keyFunctionDown(event) {
             if(floating && getRod(startingRod).checkMoveDisc(getRod(currentRod))){
                 floatingDisc.land();
                 startingRod = currentRod;
-                xPast = 0.0;
                 floating = false;
             }
             break;
@@ -281,7 +278,7 @@ var main = function (){
 
 
         // Update all world matrices in the scene graph
-        cameraPositionNode.updateWorldMatrix();
+        objects[0].node.updateWorldMatrix();
 
         // Compute all the matrices for rendering
         objects.forEach(function(object) {
