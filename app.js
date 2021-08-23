@@ -228,6 +228,9 @@ var main = function (){
         lightColorHandle = gl.getUniformLocation(program, 'LAlightColor');
     });
 
+
+    loadTextures();
+
     //
     // Main render loop
     //
@@ -268,9 +271,9 @@ var main = function (){
         var lightColorHandle = gl.getUniformLocation(program, 'LAlightColor');
 
         var pointLightColor = [0.1, 1.0, 1.0];
-        var lightPos = [0.0, 1.5, 2.0, 1.0];
-        var lightTarget = 10;
-        var lightDecay = 0;
+        var lightPos = [0.0, 3, 5.0, 1.0];
+        var lightTarget = 50;
+        var lightDecay = 2;
         var vertexMatrixPositionHandle = gl.getUniformLocation(program, 'pMatrix');
         var lightPosLocation = gl.getUniformLocation(program, 'LAPos');
         var lightTargetLocation = gl.getUniformLocation(program, "LATarget");
