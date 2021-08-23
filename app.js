@@ -226,7 +226,7 @@ var main = function (){
     });
 
 
-    loadTextures();
+    //loadTextures();
 
     //
     // Main render loop
