@@ -33,9 +33,9 @@ void main() {
   vec3 lightDirNorm = normalize(LAPos - fsPos);    //point
 
 
-  vec3 diffColor = mDiffColor * 1.0 + textureCol * 0.0;
+  vec3 diffColor = mDiffColor * 0.1 + textureCol * 0.9;
 
   //vec3 lambertColor = mDiffColor * lightColorPoint * dot(-lightDirNorm, nNormal);
-  vec3 lambertColor = diffColor * lightColorPoint * dot(-lightDirNorm, nNormal);
-  outColor = vec4(clamp(lambertColor, 0.00, 1.0),1.0);
+  vec3 lambertColor = clamp(dot(-lightDirNorm, nNormal), 0.0, 1.0) * diffColor * lightColorPoint;
+  outColor = vec4(clamp(lambertColor, 0.00, 1.0), 1.0);
 }
