@@ -268,7 +268,7 @@ var main = function (){
         var lightColorHandle = gl.getUniformLocation(program, 'LAlightColor');
 
         var pointLightColor = [1.0, 1.0, 1.0];
-        var lightPos = [0.0, 40.0, 10.0, 1.0];
+        var lightPos = [0.0, 15.0, 10.0, 1.0];
         var lightTarget = 50;
         var lightDecay = 2;
         var vertexMatrixPositionHandle = gl.getUniformLocation(program, 'pMatrix');
