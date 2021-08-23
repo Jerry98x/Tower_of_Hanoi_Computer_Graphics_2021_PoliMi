@@ -220,9 +220,13 @@ var main = function (){
         gl.useProgram(object.drawInfo.programInfo);
         // Shaders for direct light for room and scenary
         materialDiffColorHandle = gl.getUniformLocation(program, 'mDiffColor');
-        lightPositionHandle = gl.getUniformLocation(program, 'lightPosition');
-        lightColorHandle = gl.getUniformLocation(program, 'lightColor');
+        //lightPositionHandle = gl.getUniformLocation(program, 'lightPosition');
+        lightPositionHandle = gl.getUniformLocation(program, 'lightDirection');
+        lightColorHandle = gl.getUniformLocation(program, 'LAlightColor');
     });
+
+
+    loadTextures();
 
     //
     // Main render loop
@@ -259,10 +263,19 @@ var main = function (){
         var directionalLight = [lz, ly, lx];
 
 
-        var directionalLightColor = [0.1, 1.0, 1.0];
+        // var directionalLightColor = [0.1, 1.0, 1.0];
+        // var lightDirectionHandle = gl.getUniformLocation(program, 'lightDirection');
+        var lightColorHandle = gl.getUniformLocation(program, 'LAlightColor');
 
-        var lightDirectionHandle = gl.getUniformLocation(program, 'lightDirection');
-        var lightColorHandle = gl.getUniformLocation(program, 'lightColor');
+        var pointLightColor = [0.1, 1.0, 1.0];
+        var lightPos = [0.0, 3, 5.0, 1.0];
+        var lightTarget = 50;
+        var lightDecay = 2;
+        var vertexMatrixPositionHandle = gl.getUniformLocation(program, 'pMatrix');
+        var lightPosLocation = gl.getUniformLocation(program, 'LAPos');
+        var lightTargetLocation = gl.getUniformLocation(program, "LATarget");
+        var lightDecayLocation = gl.getUniformLocation(program, "LADecay");
+
 
         // Update all world matrices in the scene graph
         objects[0].node.updateWorldMatrix();
@@ -279,19 +292,28 @@ var main = function (){
             var normalMatrix = utils.invertMatrix(utils.transposeMatrix(worldViewMatrix));
 
             //Transform from World Space to Camera Space
-            var lightDirMatrix = utils.invertMatrix(utils.transposeMatrix(viewMatrix));
-            var directionalLightTransformed = utils.multiplyMatrix3Vector3(utils.sub3x3from4x4((lightDirMatrix)), directionalLight);
+            var lightDirMatrix = utils.invertMatrix(utils.transposeMatrix(viewMatrix)); //direct
+            var directionalLightTransformed = utils.multiplyMatrix3Vector3(utils.sub3x3from4x4((lightDirMatrix)), directionalLight);    //direct
+
+            var lightPosTransformed = utils.multiplyMatrixVector(viewMatrix, lightPos);    //point
 
             gl.uniformMatrix4fv(object.drawInfo.matrixLocation, gl.FALSE, utils.transposeMatrix(projMatrix));
             gl.uniformMatrix4fv(object.drawInfo.normalMatrixPositionHandle, gl.FALSE, utils.transposeMatrix(normalMatrix));
             gl.uniformMatrix4fv(object.drawInfo.vertexMatrixPositionHandle, gl.FALSE, utils.transposeMatrix(worldViewMatrix));
+            // gl.uniformMatrix4fv(vertexMatrixPositionHandle, gl.FALSE, utils.transposeMatrix(worldViewMatrix));
             gl.uniform3fv(object.drawInfo.eyePositionHandle, eyePos);
+
+            gl.uniform3fv(lightPosLocation, lightPosTransformed.slice(0,3));    //point
 
 
             // Shaders for point light for room and scenary
             gl.uniform3fv(materialDiffColorHandle, [1.0, 1.0, 1.0]);
-            gl.uniform3fv(lightColorHandle, directionalLightColor);
-            gl.uniform3fv(lightDirectionHandle, directionalLightTransformed);
+            // gl.uniform3fv(lightColorHandle, directionalLightColor);  //direct
+            // gl.uniform3fv(lightDirectionHandle, directionalLightTransformed);    //direct
+            gl.uniform3fv(lightColorHandle, pointLightColor);    //point
+            gl.uniform1f(lightTargetLocation,  lightTarget);    //point
+            gl.uniform1f(lightDecayLocation,  lightDecay);    //point
+            
 
 
             // Render the Texture
