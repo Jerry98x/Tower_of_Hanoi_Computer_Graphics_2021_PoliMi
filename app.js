@@ -185,8 +185,26 @@ function getModel() {
 
 var main = function (){
 
-    var positionLight = [-100.0, 900.0, -100.0];
-    var pointLightColor = [1.0, 1.0, 0.98];
+    var positionLight = [-100.0, -900.0, -100.0];
+    var spotLightColorGeneral = [1.0, 1.0, 1.0];
+    var ambientLightColor = [0.2, 0.2, 0.2];
+
+
+    //direct
+    var directionalLightColor = [0.1, 1.0, 1.0];
+    var lightDirectionHandle = gl.getUniformLocation(program, 'lightDirection');
+    var lightColorHandleDir = gl.getUniformLocation(program, 'lightColor');
+
+    //point
+    var pointLightColor = [1.0, 1.0, 1.0];
+    var lightPos = [0.0, 15.0, 20.0, 1.0];
+    var lightTarget = 50;
+    var lightDecay = 2;
+    //var vertexMatrixPositionHandle = gl.getUniformLocation(program, 'pMatrix');
+    var lightPosLocation = gl.getUniformLocation(program, 'LAPos');
+    var lightTargetLocation = gl.getUniformLocation(program, "LATarget");
+    var lightDecayLocation = gl.getUniformLocation(program, "LADecay");
+    var lightColorHandlePoint = gl.getUniformLocation(program, 'LAlightColor');
 
     computeSceneGraph();
 
@@ -220,9 +238,14 @@ var main = function (){
         gl.useProgram(object.drawInfo.programInfo);
         // Shaders for direct light for room and scenary
         materialDiffColorHandle = gl.getUniformLocation(program, 'mDiffColor');
-        //lightPositionHandle = gl.getUniformLocation(program, 'lightPosition');
-        lightPositionHandle = gl.getUniformLocation(program, 'lightDirection');
-        lightColorHandle = gl.getUniformLocation(program, 'LAlightColor');
+        lightPositionHandle = gl.getUniformLocation(program, 'lightPosition');
+        //lightPositionHandle = gl.getUniformLocation(program, 'lightDirection');
+        //lightColorHandle = gl.getUniformLocation(program, 'lightColor'); //direct
+        //lightColorHandle = gl.getUniformLocation(program, 'LAlightColor'); //point
+
+        lightColorHandleSpot = gl.getUniformLocation(program, 'lightColorSpot');
+
+        ambientLightColorHandle = gl.getUniformLocation(program, 'ambientLightColor');
     });
 
 
@@ -263,18 +286,8 @@ var main = function (){
         var directionalLight = [lz, ly, lx];
 
 
-        // var directionalLightColor = [0.1, 1.0, 1.0];
-        // var lightDirectionHandle = gl.getUniformLocation(program, 'lightDirection');
-        var lightColorHandle = gl.getUniformLocation(program, 'LAlightColor');
 
-        var pointLightColor = [1.0, 1.0, 1.0];
-        var lightPos = [0.0, 15.0, 10.0, 1.0];
-        var lightTarget = 50;
-        var lightDecay = 2;
-        var vertexMatrixPositionHandle = gl.getUniformLocation(program, 'pMatrix');
-        var lightPosLocation = gl.getUniformLocation(program, 'LAPos');
-        var lightTargetLocation = gl.getUniformLocation(program, "LATarget");
-        var lightDecayLocation = gl.getUniformLocation(program, "LADecay");
+
 
 
         // Update all world matrices in the scene graph
@@ -306,13 +319,22 @@ var main = function (){
             gl.uniform3fv(lightPosLocation, lightPosTransformed.slice(0,3));    //point
 
 
-            // Shaders for point light for room and scenary
+            // Shaders for lights
             gl.uniform3fv(materialDiffColorHandle, [1.0, 1.0, 1.0]);
-            // gl.uniform3fv(lightColorHandle, directionalLightColor);  //direct
-            // gl.uniform3fv(lightDirectionHandle, directionalLightTransformed);    //direct
-            gl.uniform3fv(lightColorHandle, pointLightColor);    //point
+
+            gl.uniform3fv(lightColorHandleSpot, spotLightColorGeneral); //general spot
+            gl.uniform3fv(lightPositionHandle, positionLight);  //general spot
+
+            gl.uniform3fv(lightColorHandleDir, directionalLightColor);  //direct
+            gl.uniform3fv(lightDirectionHandle, directionalLightTransformed);    //direct
+
+            gl.uniform3fv(lightColorHandlePoint, pointLightColor);    //point
             gl.uniform1f(lightTargetLocation,  lightTarget);    //point
             gl.uniform1f(lightDecayLocation,  lightDecay);    //point
+
+
+            gl.uniform3fv(ambientLightColorHandle, ambientLightColor);  //constant ambient
+
             
 
 
