@@ -31,131 +31,192 @@ var lightColorHandlePoint;
 var mouseState = false;
 var lastMouseX = -100, lastMouseY = -100;
 function doMouseDown(event) {
-    lastMouseX = event.pageX;
-    lastMouseY = event.pageY;
-    mouseState = true;
-}
-function doMouseUp(event) {
-    lastMouseX = -100;
-    lastMouseY = -100;
-    mouseState = false;
-}
-function doMouseMove(event) {
-    if(mouseState) {
-        var dx = event.pageX - lastMouseX;
-        var dy = lastMouseY - event.pageY;
-        lastMouseX = event.pageX;
-        lastMouseY = event.pageY;
-
-        if((dx != 0) || (dy != 0)) {
-            angle = angle + 0.5 * dx;
-            elevation = elevation + 0.5 * dy;
+    //lastMouseX = event.pageX;
+    //lastMouseY = event.pageY;
+    //mouseState = true;
+    lastMouseX = event.clientX;
+    if(!moving && !floating) {
+        startingRod = getPointedRod(event);
+        if(startingRod != 0) {
+            let rod = getRod(startingRod);
+            movingDisc = rod.discs[rod.length - 1];
+            movingDisc.float();
+            moving = true;
+            floating = true;
+        }
+    } else if(moving && floating) {
+        currentRod = getPointedRod(event);
+        if(currentRod != 0 && getRod(currentRod).canAddDisc(movingDisc)) {
+            movingDisc.land();
+            //moving = false;
+            floating = false;
         }
     }
 }
-function doMouseWheel(event) {
-    var nLookRadius = lookRadius + event.wheelDelta/1000.0;
-    if((nLookRadius > 2.0) && (nLookRadius < 20.0)) {
-        lookRadius = nLookRadius;
+
+function doMouseMove(event) {
+    if(moving){
+        if(1 != 0) {
+            div = 1000*0.01;
+            console.log(div);
+        }
+        var dx = event.clientX - lastMouseX;
+        lastMouseX = event.clientX;
+        if(dx != 0){
+            movingDisc.translate(dx/div, 0.0, 0.0);
+        }
+        deltaX += dx/div;
     }
+}
+
+function getPointedRod(event){
+    //This is a way of calculating the coordinates of the click in the canvas taking into account its possible displacement in the page
+    var top = 0.0, left = 0.0;
+    canvas = gl.canvas;
+    while (canvas && canvas.tagName !== 'BODY') {
+        top += canvas.offsetTop;
+        left += canvas.offsetLeft;
+        canvas = canvas.offsetParent;
+    }
+    var x = event.clientX - left;
+    var y = event.clientY - top;
+
+    //Here we calculate the normalised device coordinates from the pixel coordinates of the canvas
+    var normX = (2*x)/ gl.canvas.width - 1;
+    var normY = 1 - (2*y) / gl.canvas.height;
+
+    //We need to go through the transformation pipeline in the inverse order so we invert the matrices
+    var projInv = utils.invertMatrix(perspectiveMatrix);
+    var viewInv = utils.invertMatrix(viewMatrix);
+
+    //Find the point (un)projected on the near plane, from clip space coords to eye coords
+    //z = -1 makes it so the point is on the near plane
+    //w = 1 is for the homogeneous coordinates in clip space
+    var pointEyeCoords = utils.multiplyMatrixVector(projInv, [normX, normY, -1, 1]);
+
+    //This finds the direction of the ray in eye space
+    //Formally, to calculate the direction you would do dir = point - eyePos but since we are in eye space eyePos = [0,0,0]
+    //w = 0 is because this is not a point anymore but is considered as a direction
+    var rayEyeCoords = [pointEyeCoords[0], pointEyeCoords[1], pointEyeCoords[2], 0];
+
+
+    //We find the direction expressed in world coordinates by multipling with the inverse of the view matrix
+    var rayDir = utils.multiplyMatrixVector(viewInv, rayEyeCoords);
+    var normalisedRayDir = utils.normalize(rayDir);
+    //The ray starts from the camera in world coordinates
+    var rayStartPoint = [cx, cy, cz];
+    //We iterate on all the objects in the scene to check for collisions
+    if(normalisedRayDir[2] != 0){
+        let t = (dzBase-rayStartPoint[2]) / normalisedRayDir[2];
+        let x = rayStartPoint[0] + t*normalisedRayDir[0];
+        let y = rayStartPoint[1] + t*normalisedRayDir[1];
+        if(x11 < x && x < x12){
+            return 1;
+        } else if (x21 < x && x < x22){
+            return 2;
+        } else if (x31 < x && x < x32){
+            return 3;
+        }
+    }
+    return 0;
 }
 
 function keyFunctionDown(event) {
     if(document.getElementById("victory").style.visibility=="hidden") {
-        switch (event.keyCode) {
-            case 68:
-                //move camera to the right
-                if(angle-step > 30) {
-                    angle -= step;
-                }
-                break;
-            case 65:
-                //move camera to the left
-                if(angle+step < 150) {
-                    angle += step;
-                }
-                break;
-            case 81:
-                //high camera
-                if(elevation-step > 30) {
-                    elevation -= step;
-                }
-                break;
-            case 69:
-                //low camera
-                if(elevation+step < 150) {
-                    elevation += step;
-                }
-                break;
-            case 87:
-                //zoom in
-                if(lookRadius-step > 10){
-                    lookRadius -= step;
-                }
-                break;
-            case 83:
-                //zoom out
-                if(lookRadius+step < 80){
-                    lookRadius += step;
-                }
-                break;
-            case 49:
-                //rod 1
-                if(!floating && startRod.length>0) {
-                    floating = true;
-                    floatingDisc = startRod.getHighestDisc();
-                    floatingDisc.float();
-                    startingRod = 1;
-                    currentRod = startingRod;
-                }
-                break;
-            case 50:
-                //rod 2
-                if(!floating && middleRod.length>0) {
-                    floating = true;
-                    floatingDisc = middleRod.getHighestDisc();
-                    floatingDisc.float();
-                    startingRod = 2;
-                    currentRod = startingRod;
-                }
-                break;
-            case 51:
-                //rod 3
-                if(!floating && endRod.length>0) {
-                    floating = true;
-                    floatingDisc = endRod.getHighestDisc();
-                    floatingDisc.float();
-                    startingRod = 3;
-                    currentRod = startingRod;
-                }
-                break;
-            case 37:
-                //shift left
-                if(floating && currentRod != 1) {
-                    currentRod--;
-                    floatingDisc.shift();
-                    //TODO update texture
-                }
-                break;
-            case 39:
-                //shift right
-                if(floating && currentRod != 3) {
-                    currentRod++;
-                    floatingDisc.shift();
-                    //TODO update texture
-                }
-                break;
-            case 13:
-                //accept rod
-                if(floating && getRod(startingRod).checkMoveDisc(getRod(currentRod))){
-                    floatingDisc.land();
-                    startingRod = currentRod;
-                    floating = false;
-                }
-                break;
-        }
+    switch (event.keyCode) {
+        case 68:
+            //move camera to the right
+            if(!moving && angle-step > 30) {
+                angle -= step;
+            }
+            break;
+        case 65:
+            //move camera to the left
+            if(!moving && angle+step < 150) {
+                angle += step;
+            }
+            break;
+        case 81:
+            //high camera
+            if(!moving && elevation-step > 30) {
+                elevation -= step;
+            }
+            break;
+        case 69:
+            //low camera
+            if(!moving && elevation+step < 150) {
+                elevation += step;
+            }
+            break;
+        case 87:
+            //zoom in
+            if(!moving && lookRadius-step > 10){
+                lookRadius -= step;
+                //div++;
+            }
+            break;
+        case 83:
+            //zoom out
+            if(!moving && lookRadius+step < 80){
+                lookRadius += step;
+                //div--;
+            }
+            break;
+        case 49:
+            //rod 1
+            if(!moving && !floating && startRod.length>0) {
+                floating = true;
+                floatingDisc = startRod.getHighestDisc();
+                floatingDisc.float();
+                startingRod = 1;
+                currentRod = startingRod;
+            }
+            break;
+        case 50:
+            //rod 2
+            if(!moving && !floating && middleRod.length>0) {
+                floating = true;
+                floatingDisc = middleRod.getHighestDisc();
+                floatingDisc.float();
+                startingRod = 2;
+                currentRod = startingRod;
+            }
+            break;
+        case 51:
+            //rod 3
+            if(!moving && !floating && endRod.length>0) {
+                floating = true;
+                floatingDisc = endRod.getHighestDisc();
+                floatingDisc.float();
+                startingRod = 3;
+                currentRod = startingRod;
+            }
+            break;
+        case 37:
+            //shift left
+            if(!moving && floating && currentRod != 1) {
+                currentRod--;
+                floatingDisc.shift();
+                //TODO update texture
+            }
+            break;
+        case 39:
+            //shift right
+            if(!moving && floating && currentRod != 3) {
+                currentRod++;
+                floatingDisc.shift();
+                //TODO update texture
+            }
+            break;
+        case 13:
+            //accept rod
+            if(!moving && floating && getRod(startingRod).checkMoveDisc(getRod(currentRod))){
+                floatingDisc.land();
+                startingRod = currentRod;
+                floating = false;
+            }
+            break;
     }
-    
 }
 
 function computeModelData() {
@@ -216,9 +277,7 @@ var main = function (){
     computeSceneGraph();
 
     window.addEventListener("mousedown", doMouseDown, false);
-    window.addEventListener("mouseup", doMouseUp, false);
     window.addEventListener("mousemove", doMouseMove, false);
-    window.addEventListener("mousewheel", doMouseWheel, false);
     window.addEventListener("keydown", keyFunctionDown, false);
 
     objects.forEach(function (object) {
@@ -270,6 +329,34 @@ var main = function (){
     requestAnimationFrame(drawScene);
 
     function drawScene() {
+
+        if(goingUp) {
+            console.log('y: ' + deltaY);
+            if (deltaY >= floatingHeight) {
+                goingUp = false;
+            } else {
+                if (moving) {
+                    movingDisc.translate(0.0, stepY, 0.0);
+                } else {
+                    floatingDisc.translate(0.0, stepY, 0.0);
+                }
+            }
+            deltaY += stepY;
+        }
+        if(goingDown){
+            if (deltaY <= stepY) {
+                deltaY = 0.0;
+                goingDown = false;
+                moving = false;
+            } else {
+                if (moving) {
+                    movingDisc.translate(0.0, -stepY, 0.0);
+                } else {
+                    floatingDisc.translate(0.0, -stepY, 0.0);
+                }
+            }
+            deltaY -= stepY;
+        }
 
         // Clear
         gl.clearColor(0.85, 0.85, 0.85, 1.0);
@@ -433,7 +520,7 @@ function reset() {
     elevation = 90.0;
     angle = 90.0;
     lookRadius = 30.0;
-    
+
     init();
 }
 
