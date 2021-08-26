@@ -55,7 +55,7 @@ function doMouseDown(event) {
 }
 
 function doMouseMove(event) {
-    if(moving){
+    if(moving && !goingUp && !goingDown){
         if(1 != 0) {
             div = 1000*0.01;
             console.log(div);
@@ -109,7 +109,7 @@ function getPointedRod(event){
     if(normalisedRayDir[2] != 0){
         let t = (dzBase-rayStartPoint[2]) / normalisedRayDir[2];
         let x = rayStartPoint[0] + t*normalisedRayDir[0];
-        let y = rayStartPoint[1] + t*normalisedRayDir[1];
+        //TODO use this x to shift left/right the disc
         if(x11 < x && x < x12){
             return 1;
         } else if (x21 < x && x < x22){
@@ -128,30 +128,39 @@ function keyFunctionDown(event) {
             //move camera to the right
             if(!moving && angle-step > 30) {
                 angle -= step;
+                //TODO translate in center
+                objects[0].node.localMatrix = utils.multiplyMatrices(objects[0].node.localMatrix,utils.MakeRotateYMatrix(step));
+                //TODO translate again where before
+                //TODO for 65,81,69
             }
             break;
         case 65:
             //move camera to the left
             if(!moving && angle+step < 150) {
                 angle += step;
+                objects[0].node.localMatrix = utils.multiplyMatrices(objects[0].node.localMatrix,utils.MakeRotateYMatrix(-step));
             }
             break;
         case 81:
             //high camera
             if(!moving && elevation-step > 30) {
                 elevation -= step;
+                objects[0].node.localMatrix = utils.multiplyMatrices(objects[0].node.localMatrix,utils.MakeRotateXMatrix(step));
             }
             break;
         case 69:
             //low camera
             if(!moving && elevation+step < 150) {
                 elevation += step;
+                objects[0].node.localMatrix = utils.multiplyMatrices(objects[0].node.localMatrix,utils.MakeRotateXMatrix(-step));
+
             }
             break;
         case 87:
             //zoom in
             if(!moving && lookRadius-step > 10){
                 lookRadius -= step;
+                objects[0].node.localMatrix = utils.multiplyMatrices(objects[0].node.localMatrix,utils.MakeTranslateMatrix(0.0, 0.0, step));
                 //div++;
             }
             break;
@@ -159,6 +168,7 @@ function keyFunctionDown(event) {
             //zoom out
             if(!moving && lookRadius+step < 80){
                 lookRadius += step;
+                objects[0].node.localMatrix = utils.multiplyMatrices(objects[0].node.localMatrix,utils.MakeTranslateMatrix(0.0, 0.0, -step));
                 //div--;
             }
             break;
@@ -368,9 +378,6 @@ var main = function (){
 
         //added
         // update WV matrix
-        cx = lookRadius * Math.sin(utils.degToRad(elevation)) * Math.cos(utils.degToRad(angle));
-        cy = lookRadius * Math.cos(utils.degToRad(elevation)) + eyeHeight;
-        cz = lookRadius * Math.sin(utils.degToRad(elevation)) * Math.sin(utils.degToRad(angle));
         var cameraPosition = [cx, cy, cz];
         var target = [0.0, eyeHeight, -10.0];
         var up = [0.0, 1.0, 0.0];
