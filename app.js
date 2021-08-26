@@ -166,8 +166,8 @@ function keyFunctionDown(event) {
             //rod 1
             if(!moving && !floating && startRod.length>0) {
                 floating = true;
-                floatingDisc = startRod.getHighestDisc();
-                floatingDisc.float();
+                movingDisc = startRod.getHighestDisc();
+                movingDisc.float();
                 startingRod = 1;
                 currentRod = startingRod;
             }
@@ -176,8 +176,8 @@ function keyFunctionDown(event) {
             //rod 2
             if(!moving && !floating && middleRod.length>0) {
                 floating = true;
-                floatingDisc = middleRod.getHighestDisc();
-                floatingDisc.float();
+                movingDisc = middleRod.getHighestDisc();
+                movingDisc.float();
                 startingRod = 2;
                 currentRod = startingRod;
             }
@@ -186,8 +186,8 @@ function keyFunctionDown(event) {
             //rod 3
             if(!moving && !floating && endRod.length>0) {
                 floating = true;
-                floatingDisc = endRod.getHighestDisc();
-                floatingDisc.float();
+                movingDisc = endRod.getHighestDisc();
+                movingDisc.float();
                 startingRod = 3;
                 currentRod = startingRod;
             }
@@ -196,7 +196,7 @@ function keyFunctionDown(event) {
             //shift left
             if(!moving && floating && currentRod != 1) {
                 currentRod--;
-                floatingDisc.shift();
+                movingDisc.shift();
                 //TODO update texture
             }
             break;
@@ -204,14 +204,14 @@ function keyFunctionDown(event) {
             //shift right
             if(!moving && floating && currentRod != 3) {
                 currentRod++;
-                floatingDisc.shift();
+                movingDisc.shift();
                 //TODO update texture
             }
             break;
         case 13:
             //accept rod
             if(!moving && floating && getRod(startingRod).checkMoveDisc(getRod(currentRod))){
-                floatingDisc.land();
+                movingDisc.land();
                 startingRod = currentRod;
                 floating = false;
             }
@@ -337,22 +337,19 @@ var main = function (){
             } else {
                 if (moving) {
                     movingDisc.translate(0.0, stepY, 0.0);
-                } else {
-                    floatingDisc.translate(0.0, stepY, 0.0);
                 }
             }
             deltaY += stepY;
         }
         if(goingDown){
             if (deltaY <= stepY) {
+                movingDisc.translate(0.0, -stepY, 0.0);
                 deltaY = 0.0;
                 goingDown = false;
                 moving = false;
             } else {
                 if (moving) {
                     movingDisc.translate(0.0, -stepY, 0.0);
-                } else {
-                    floatingDisc.translate(0.0, -stepY, 0.0);
                 }
             }
             deltaY -= stepY;
