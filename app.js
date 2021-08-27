@@ -129,7 +129,10 @@ function keyFunctionDown(event) {
             if(!moving && angle-step > 30) {
                 angle -= step;
                 //TODO translate in center
+                objects[0].node.localMatrix = utils.multiplyMatrices(objects[0].node.localMatrix,utils.MakeTranslateMatrix(0.0, 0.0, -dzBase));
                 objects[0].node.localMatrix = utils.multiplyMatrices(objects[0].node.localMatrix,utils.MakeRotateYMatrix(step));
+                objects[0].node.localMatrix = utils.multiplyMatrices(objects[0].node.localMatrix,utils.MakeTranslateMatrix(0.0, 0.0, dzBase));
+
                 //TODO translate again where before
                 //TODO for 65,81,69
             }
@@ -138,21 +141,28 @@ function keyFunctionDown(event) {
             //move camera to the left
             if(!moving && angle+step < 150) {
                 angle += step;
+                objects[0].node.localMatrix = utils.multiplyMatrices(objects[0].node.localMatrix,utils.MakeTranslateMatrix(0.0, 0.0, -dzBase));
                 objects[0].node.localMatrix = utils.multiplyMatrices(objects[0].node.localMatrix,utils.MakeRotateYMatrix(-step));
+                objects[0].node.localMatrix = utils.multiplyMatrices(objects[0].node.localMatrix,utils.MakeTranslateMatrix(0.0, 0.0, dzBase));
             }
             break;
         case 81:
             //high camera
             if(!moving && elevation-step > 30) {
                 elevation -= step;
+                objects[0].node.localMatrix = utils.multiplyMatrices(objects[0].node.localMatrix,utils.MakeTranslateMatrix(0.0, 0.0, -dzBase));
                 objects[0].node.localMatrix = utils.multiplyMatrices(objects[0].node.localMatrix,utils.MakeRotateXMatrix(step));
+                objects[0].node.localMatrix = utils.multiplyMatrices(objects[0].node.localMatrix,utils.MakeTranslateMatrix(0.0, 0.0, dzBase));
             }
             break;
         case 69:
             //low camera
             if(!moving && elevation+step < 150) {
                 elevation += step;
+                objects[0].node.localMatrix = utils.multiplyMatrices(objects[0].node.localMatrix,utils.MakeTranslateMatrix(0.0, 0.0, -dzBase));
                 objects[0].node.localMatrix = utils.multiplyMatrices(objects[0].node.localMatrix,utils.MakeRotateXMatrix(-step));
+                objects[0].node.localMatrix = utils.multiplyMatrices(objects[0].node.localMatrix,utils.MakeTranslateMatrix(0.0, 0.0, dzBase));
+
 
             }
             break;
@@ -160,6 +170,7 @@ function keyFunctionDown(event) {
             //zoom in
             if(!moving && lookRadius-step > 10){
                 lookRadius -= step;
+                dzBase -= step;
                 objects[0].node.localMatrix = utils.multiplyMatrices(objects[0].node.localMatrix,utils.MakeTranslateMatrix(0.0, 0.0, step));
                 //div++;
             }
@@ -168,6 +179,7 @@ function keyFunctionDown(event) {
             //zoom out
             if(!moving && lookRadius+step < 80){
                 lookRadius += step;
+                dzBase += step;
                 objects[0].node.localMatrix = utils.multiplyMatrices(objects[0].node.localMatrix,utils.MakeTranslateMatrix(0.0, 0.0, -step));
                 //div--;
             }
