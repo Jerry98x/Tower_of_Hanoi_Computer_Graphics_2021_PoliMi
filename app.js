@@ -31,39 +31,35 @@ var lightColorHandlePoint;
 var mouseState = false;
 var lastMouseX = -100, lastMouseY = -100;
 function doMouseDown(event) {
-    //lastMouseX = event.pageX;
-    //lastMouseY = event.pageY;
-    //mouseState = true;
     lastMouseX = event.clientX;
-    if(!moving && !floating) {
+    if(!movingKey && !floating && !goingUp && !goingDown) {
         startingRod = getPointedRod(event);
         if(startingRod != 0) {
+            movingMouse = true;
             let rod = getRod(startingRod);
-            movingDisc = rod.discs[rod.length - 1];
-            movingDisc.float();
-            moving = true;
+            floatingDisc = rod.discs[rod.length - 1];
+            floatingDisc.float();
             floating = true;
         }
-    } else if(moving && floating) {
+    } else if(!movingKey && floating && !goingUp && !goingDown) {
         currentRod = getPointedRod(event);
-        if(currentRod != 0 && getRod(currentRod).canAddDisc(movingDisc)) {
-            movingDisc.land();
-            //moving = false;
+        if(currentRod != 0 && getRod(currentRod).canAddDisc(floatingDisc)) {
+            floatingDisc.land();
+            movingMouse = false;
             floating = false;
         }
     }
 }
 
 function doMouseMove(event) {
-    if(moving && !goingUp && !goingDown){
+    if(movingMouse && !movingKey && !goingUp && !goingDown){
         if(1 != 0) {
             div = 1000*0.01;
-            console.log(div);
         }
         var dx = event.clientX - lastMouseX;
         lastMouseX = event.clientX;
         if(dx != 0){
-            movingDisc.translate(dx/div, 0.0, 0.0);
+            floatingDisc.translate(dx/div, 0.0, 0.0);
         }
         deltaX += dx/div;
     }
@@ -121,120 +117,102 @@ function getPointedRod(event){
     return 0;
 }
 
+function getRotatedMatrix(rvx, rvy, rvz) {
+
+    var deltaq = Quaternion.fromEuler(utils.degToRad(rvz), utils.degToRad(rvx), utils.degToRad(rvy), order = 'ZXY');
+
+    baseq = deltaq.mul(baseq);
+
+    return baseq.toMatrix4();
+}
+
 function keyFunctionDown(event) {
     if(document.getElementById("victory").style.visibility=="hidden") {
     switch (event.keyCode) {
-        case 68:
+        case 68://D
             //move camera to the right
-            if(!moving && angle-step > 30) {
-                angle -= step;
-                //TODO translate in center
-                objects[0].node.localMatrix = utils.multiplyMatrices(objects[0].node.localMatrix,utils.MakeTranslateMatrix(0.0, 0.0, -dzBase));
-                objects[0].node.localMatrix = utils.multiplyMatrices(objects[0].node.localMatrix,utils.MakeRotateYMatrix(step));
-                objects[0].node.localMatrix = utils.multiplyMatrices(objects[0].node.localMatrix,utils.MakeTranslateMatrix(0.0, 0.0, dzBase));
+            if(!movingMouse && yRotation-step > -45) {
+                yRotation -= step;
+                objects[0].node.localMatrix = getRotatedMatrix(0.0, -step, 0.0);
 
-                //TODO translate again where before
-                //TODO for 65,81,69
             }
             break;
-        case 65:
+        case 65://A
             //move camera to the left
-            if(!moving && angle+step < 150) {
-                angle += step;
-                objects[0].node.localMatrix = utils.multiplyMatrices(objects[0].node.localMatrix,utils.MakeTranslateMatrix(0.0, 0.0, -dzBase));
-                objects[0].node.localMatrix = utils.multiplyMatrices(objects[0].node.localMatrix,utils.MakeRotateYMatrix(-step));
-                objects[0].node.localMatrix = utils.multiplyMatrices(objects[0].node.localMatrix,utils.MakeTranslateMatrix(0.0, 0.0, dzBase));
+            if(!movingMouse && yRotation+step < 45) {
+                yRotation += step;
+                objects[0].node.localMatrix = getRotatedMatrix(0.0, step, 0.0);
             }
             break;
-        case 81:
-            //high camera
-            if(!moving && elevation-step > 30) {
-                elevation -= step;
-                objects[0].node.localMatrix = utils.multiplyMatrices(objects[0].node.localMatrix,utils.MakeTranslateMatrix(0.0, 0.0, -dzBase));
-                objects[0].node.localMatrix = utils.multiplyMatrices(objects[0].node.localMatrix,utils.MakeRotateXMatrix(step));
-                objects[0].node.localMatrix = utils.multiplyMatrices(objects[0].node.localMatrix,utils.MakeTranslateMatrix(0.0, 0.0, dzBase));
-            }
-            break;
-        case 69:
-            //low camera
-            if(!moving && elevation+step < 150) {
-                elevation += step;
-                objects[0].node.localMatrix = utils.multiplyMatrices(objects[0].node.localMatrix,utils.MakeTranslateMatrix(0.0, 0.0, -dzBase));
-                objects[0].node.localMatrix = utils.multiplyMatrices(objects[0].node.localMatrix,utils.MakeRotateXMatrix(-step));
-                objects[0].node.localMatrix = utils.multiplyMatrices(objects[0].node.localMatrix,utils.MakeTranslateMatrix(0.0, 0.0, dzBase));
-
-
-            }
-            break;
-        case 87:
+        case 87://W
             //zoom in
-            if(!moving && lookRadius-step > 10){
+            if(!movingMouse && lookRadius-step > 10){
                 lookRadius -= step;
-                dzBase -= step;
-                objects[0].node.localMatrix = utils.multiplyMatrices(objects[0].node.localMatrix,utils.MakeTranslateMatrix(0.0, 0.0, step));
-                //div++;
+                cz -= step;
             }
             break;
-        case 83:
+        case 83://S
             //zoom out
-            if(!moving && lookRadius+step < 80){
+            if(!movingMouse && lookRadius+step < 50){
                 lookRadius += step;
-                dzBase += step;
-                objects[0].node.localMatrix = utils.multiplyMatrices(objects[0].node.localMatrix,utils.MakeTranslateMatrix(0.0, 0.0, -step));
-                //div--;
+                cz += step;
             }
             break;
-        case 49:
+        case 49://1
             //rod 1
-            if(!moving && !floating && startRod.length>0) {
+            if(!movingMouse && !floating && startRod.length>0){
+                movingKey = true;
                 floating = true;
-                movingDisc = startRod.getHighestDisc();
-                movingDisc.float();
+                floatingDisc = startRod.getHighestDisc();
+                floatingDisc.float();
                 startingRod = 1;
                 currentRod = startingRod;
             }
             break;
-        case 50:
+        case 50://2
             //rod 2
-            if(!moving && !floating && middleRod.length>0) {
+            if(!movingMouse && !floating && middleRod.length>0) {
+                movingKey = true;
                 floating = true;
-                movingDisc = middleRod.getHighestDisc();
-                movingDisc.float();
+                floatingDisc = middleRod.getHighestDisc();
+                floatingDisc.float();
                 startingRod = 2;
                 currentRod = startingRod;
             }
             break;
-        case 51:
+        case 51://3
             //rod 3
-            if(!moving && !floating && endRod.length>0) {
+            if(!movingMouse && !floating && endRod.length>0) {
+                movingKey = true;
                 floating = true;
-                movingDisc = endRod.getHighestDisc();
-                movingDisc.float();
+                floatingDisc = endRod.getHighestDisc();
+                floatingDisc.float();
                 startingRod = 3;
                 currentRod = startingRod;
             }
             break;
         case 37:
             //shift left
-            if(!moving && floating && currentRod != 1) {
+            if(!movingMouse && floating && currentRod != 1) {
                 currentRod--;
-                movingDisc.shift();
+                floatingDisc.shift();
                 //TODO update texture
             }
             break;
         case 39:
             //shift right
-            if(!moving && floating && currentRod != 3) {
+            if(!movingMouse && floating && currentRod != 3) {
                 currentRod++;
-                movingDisc.shift();
+                floatingDisc.shift();
                 //TODO update texture
             }
             break;
         case 13:
             //accept rod
-            if(!moving && floating && getRod(startingRod).checkMoveDisc(getRod(currentRod))){
-                movingDisc.land();
+            if(!movingMouse && floating && getRod(currentRod).canAddDisc(floatingDisc)){
+                floatingDisc.land();
                 startingRod = currentRod;
+                movingKey = false;
                 floating = false;
             }
             break;
@@ -353,26 +331,22 @@ var main = function (){
     function drawScene() {
 
         if(goingUp) {
-            console.log('y: ' + deltaY);
             if (deltaY >= floatingHeight) {
+                //floatingDisc.translate(0.0, stepY, 0.0);
+                deltaY = floatingHeight;
                 goingUp = false;
             } else {
-                if (moving) {
-                    movingDisc.translate(0.0, stepY, 0.0);
-                }
+                floatingDisc.translate(0.0, stepY, 0.0);
             }
             deltaY += stepY;
         }
         if(goingDown){
             if (deltaY <= stepY) {
-                movingDisc.translate(0.0, -stepY, 0.0);
+                floatingDisc.translate(0.0, -stepY, 0.0);
                 deltaY = 0.0;
                 goingDown = false;
-                moving = false;
             } else {
-                if (moving) {
-                    movingDisc.translate(0.0, -stepY, 0.0);
-                }
+                floatingDisc.translate(0.0, -stepY, 0.0);
             }
             deltaY -= stepY;
         }
@@ -391,7 +365,7 @@ var main = function (){
         //added
         // update WV matrix
         var cameraPosition = [cx, cy, cz];
-        var target = [0.0, eyeHeight, -10.0];
+        var target = [0.0, eyeHeight, 0.0];
         var up = [0.0, 1.0, 0.0];
         var cameraMatrix = utils.LookAt(cameraPosition, target, up);
         var viewMatrix = utils.invertMatrix(cameraMatrix);
@@ -407,7 +381,7 @@ var main = function (){
 
 
         // Update all world matrices in the scene graph
-        objects[0].node.updateWorldMatrix();
+        objects[0].node.updateWorldMatrix(utils.identityMatrix());
 
         // Compute all the matrices for rendering
         objects.forEach(function(object) {
