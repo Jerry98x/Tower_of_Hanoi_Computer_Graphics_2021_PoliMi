@@ -18,15 +18,16 @@
                             Your browser does not support HTML5
                         </canvas>
 
-                        <div id="victory" style="position: absolute; z-index: 1; left: 225px; top: 80px; width:700px; height:150px; text-align: center; background-color: white; border-style: dashed; border-color: green; opacity: 0.7; padding: 5px 10px 5px 10px; overflow:auto; visibility: hidden;">
+                        <div id="end" style="position: absolute; z-index: 1; left: 225px; top: 80px; width:700px; height:150px; text-align: center; background-color: white; border-style: dashed; border-color: green; opacity: 0.7; padding: 5px 10px 5px 10px; overflow:auto; visibility: hidden;">
                             <!-- <img src="presentation/gmax_finale.gif" alt="alcremie" height="140" width="650"> -->
                             <p>
-                                <b style="font-family: Arial, Helvetica, sans-serif; font-size:xx-large; color: red">
-                                    YOU WON!
+                                <b style="font-family: Arial, Helvetica, sans-serif; font-size: larger; color: black">
+                                    <output id="result">
+                                    </output>
                                 </b>
                             </p>
                             <P style="font-family: Arial, Helvetica, sans-serif; font-size: larger; color: black">
-                                Reset to play again.
+                                Press 'start' to play again.
                             </P>
                         </div>
                     
@@ -60,7 +61,22 @@
                     </p>
 
                     <p>
-                        <b style="font-family: Arial, Helvetica, sans-serif; font-size: larger; color: black">Available moves</b>
+                        <b style="font-family: Arial, Helvetica, sans-serif; font-size: larger; color: black">Number of discs</b>
+                        <input type="number" id="numberOfDiscs" min="1" max="7" step="1" value="7">
+                    </p>
+                    <p>
+                        <b style="font-family: Arial, Helvetica, sans-serif; font-size: larger; color: black">Total moves allowed (0 means infinite)</b><br>
+                        <input type="number" id="allowedMoves" min="0" max="999" step="1" value="0">
+                    </p>
+                    <p>
+                        <button type="button" id="minMoves" onclick="setMinMoves()">SET MINIMUM OF MOVES BASED ON NUMBER OF DISCS</button>
+                    </p>
+
+                    <p>
+                        <b style="font-family: Arial, Helvetica, sans-serif; font-size: larger; color: black">Moves done
+                        <output id="numberOfMoves">
+                        </output>
+                        </b>
                     </p>
                         
                     <p>
@@ -84,7 +100,7 @@
                     </p>
 
                     <p>
-                        <button type="button" id="button" onclick="reset()">RESET</button>
+                        <button style="background-color: green" type="button" id="button" onclick="start()">START</button>
                     </p>
 
                     <p>

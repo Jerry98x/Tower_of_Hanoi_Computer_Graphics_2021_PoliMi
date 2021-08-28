@@ -28,44 +28,44 @@ var lightDecayLocation;
 var lightColorHandlePoint;
 
 
-var mouseState = false;
-var lastMouseX = -100, lastMouseY = -100;
 function doMouseDown(event) {
-    lastMouseX = event.clientX;
-    if(!movingKey && !floating && !goingUp && !goingDown) {
-        startingRod = getPointedRod(event);
-        if(startingRod != 0) {
-            movingMouse = true;
-            let rod = getRod(startingRod);
-            floatingDisc = rod.discs[rod.length - 1];
-            floatingDisc.float();
-            floating = true;
-        }
-    } else if(!movingKey && floating && !goingUp && !goingDown) {
-        currentRod = getPointedRod(event);
-        if(currentRod != 0 && getRod(currentRod).canAddDisc(floatingDisc)) {
-            floatingDisc.land();
-            movingMouse = false;
-            floating = false;
+    if(!gameEnded && gameStarted) {
+        lastMouseX = event.clientX;
+        if (!movingKey && !floating && !goingUp && !goingDown) {
+            startingRod = getPointedRod(event);
+            if (startingRod != 0) {
+                movingMouse = true;
+                let rod = getRod(startingRod);
+                floatingDisc = rod.discs[rod.length - 1];
+                floatingDisc.float();
+                floating = true;
+            }
+        } else if (!movingKey && floating && !goingUp && !goingDown) {
+            currentRod = getPointedRod(event);
+            if (currentRod != 0 && getRod(currentRod).canAddDisc(floatingDisc)) {
+                floatingDisc.land();
+                movingMouse = false;
+                floating = false;
+            }
         }
     }
 }
 
 function doMouseMove(event) {
-    if(movingMouse && !movingKey && !goingUp && !goingDown){
-        if(1 != 0) {
-            div = 1000*0.01;
+    if(!gameEnded && gameStarted) {
+        if (movingMouse && !movingKey && !goingUp && !goingDown) {
+            updateMouseWorldX(event);
+            var dx = mouseWorldX - currentDiscX;
+            if (dx != 0) {
+                floatingDisc.translate(dx, 0.0, 0.0);
+            }
+            currentDiscX += dx;
+            deltaX += dx;
         }
-        var dx = event.clientX - lastMouseX;
-        lastMouseX = event.clientX;
-        if(dx != 0){
-            floatingDisc.translate(dx/div, 0.0, 0.0);
-        }
-        deltaX += dx/div;
     }
 }
 
-function getPointedRod(event){
+function updateMouseWorldX(event){
     //This is a way of calculating the coordinates of the click in the canvas taking into account its possible displacement in the page
     var top = 0.0, left = 0.0;
     canvas = gl.canvas;
@@ -96,23 +96,26 @@ function getPointedRod(event){
     var rayEyeCoords = [pointEyeCoords[0], pointEyeCoords[1], pointEyeCoords[2], 0];
 
 
-    //We find the direction expressed in world coordinates by multipling with the inverse of the view matrix
+    //We find the direction expressed in world coordinates by multiplying with the inverse of the view matrix
     var rayDir = utils.multiplyMatrixVector(viewInv, rayEyeCoords);
     var normalisedRayDir = utils.normalize(rayDir);
     //The ray starts from the camera in world coordinates
     var rayStartPoint = [cx, cy, cz];
     //We iterate on all the objects in the scene to check for collisions
-    if(normalisedRayDir[2] != 0){
-        let t = (dzBase-rayStartPoint[2]) / normalisedRayDir[2];
-        let x = rayStartPoint[0] + t*normalisedRayDir[0];
-        //TODO use this x to shift left/right the disc
-        if(x11 < x && x < x12){
-            return 1;
-        } else if (x21 < x && x < x22){
-            return 2;
-        } else if (x31 < x && x < x32){
-            return 3;
-        }
+    if(normalisedRayDir[2] != 0) {
+        let t = (dzBase - rayStartPoint[2]) / normalisedRayDir[2];
+        mouseWorldX = rayStartPoint[0] + t * normalisedRayDir[0];
+    }
+}
+
+function getPointedRod(event) {
+    updateMouseWorldX(event);
+    if (x11 < mouseWorldX && mouseWorldX < x12) {
+        return 1;
+    } else if (x21 < mouseWorldX && mouseWorldX < x22) {
+        return 2;
+    } else if (x31 < mouseWorldX && mouseWorldX < x32) {
+        return 3;
     }
     return 0;
 }
@@ -127,39 +130,39 @@ function getRotatedMatrix(rvx, rvy, rvz) {
 }
 
 function keyFunctionDown(event) {
-    if (document.getElementById("victory").style.visibility == "hidden") {
-        switch (event.keyCode) {
-            case 68://D
-                //move camera to the right
-                if (!movingMouse && yRotation - step > -45) {
-                    yRotation -= step;
-                    objects[0].node.localMatrix = getRotatedMatrix(0.0, -step, 0.0);
+    switch (event.keyCode) {
+        case 68://D
+            //move camera to the right
+            if (!movingMouse && yRotation - step > -45) {
+                yRotation -= step;
+                objects[0].node.localMatrix = getRotatedMatrix(0.0, -step, 0.0);
 
-                }
-                break;
-            case 65://A
-                //move camera to the left
-                if (!movingMouse && yRotation + step < 45) {
-                    yRotation += step;
-                    objects[0].node.localMatrix = getRotatedMatrix(0.0, step, 0.0);
-                }
-                break;
-            case 87://W
-                //zoom in
-                if (!movingMouse && lookRadius - step > 10) {
-                    lookRadius -= step;
-                    cz -= step;
-                }
-                break;
-            case 83://S
-                //zoom out
-                if (!movingMouse && lookRadius + step < 50) {
-                    lookRadius += step;
-                    cz += step;
-                }
-                break;
-            case 49://1
-                //rod 1
+            }
+            break;
+        case 65://A
+            //move camera to the left
+            if (!movingMouse && yRotation + step < 45) {
+                yRotation += step;
+                objects[0].node.localMatrix = getRotatedMatrix(0.0, step, 0.0);
+            }
+            break;
+        case 87://W
+            //zoom in
+            if (!movingMouse && lookRadius - step > 10) {
+                lookRadius -= step;
+                cz -= step;
+            }
+            break;
+        case 83://S
+            //zoom out
+            if (!movingMouse && lookRadius + step < 50) {
+                lookRadius += step;
+                cz += step;
+            }
+            break;
+        case 49://1
+            //rod 1
+            if (!gameEnded && gameStarted) {
                 if (!movingMouse && !floating && startRod.length > 0) {
                     movingKey = true;
                     floating = true;
@@ -168,9 +171,11 @@ function keyFunctionDown(event) {
                     startingRod = 1;
                     currentRod = startingRod;
                 }
-                break;
-            case 50://2
-                //rod 2
+            }
+            break;
+        case 50://2
+            //rod 2
+            if (!gameEnded && gameStarted) {
                 if (!movingMouse && !floating && middleRod.length > 0) {
                     movingKey = true;
                     floating = true;
@@ -179,9 +184,11 @@ function keyFunctionDown(event) {
                     startingRod = 2;
                     currentRod = startingRod;
                 }
-                break;
-            case 51://3
-                //rod 3
+            }
+            break;
+        case 51://3
+            //rod 3
+            if (!gameEnded && gameStarted) {
                 if (!movingMouse && !floating && endRod.length > 0) {
                     movingKey = true;
                     floating = true;
@@ -190,33 +197,39 @@ function keyFunctionDown(event) {
                     startingRod = 3;
                     currentRod = startingRod;
                 }
-                break;
-            case 37:
-                //shift left
+            }
+            break;
+        case 37:
+            //shift left
+            if (!gameEnded && gameStarted) {
                 if (!movingMouse && floating && currentRod != 1) {
                     currentRod--;
                     floatingDisc.shift();
                     //TODO update texture
                 }
-                break;
-            case 39:
-                //shift right
+            }
+            break;
+        case 39:
+            //shift right
+            if (!gameEnded && gameStarted) {
                 if (!movingMouse && floating && currentRod != 3) {
                     currentRod++;
                     floatingDisc.shift();
                     //TODO update texture
                 }
-                break;
-            case 13:
-                //accept rod
+            }
+            break;
+        case 13:
+            //accept rod
+            if (!gameEnded && gameStarted) {
                 if (!movingMouse && floating && getRod(currentRod).canAddDisc(floatingDisc)) {
                     floatingDisc.land();
                     startingRod = currentRod;
                     movingKey = false;
                     floating = false;
                 }
-                break;
-        }
+            }
+            break;
     }
 }
 
@@ -451,6 +464,24 @@ var main = function (){
 }
 
 var init = async function() {
+    elevation = 90.0;
+    angle = 90.0;
+    lookRadius = 30.0;
+    gameEnded = false;
+    win = false;
+    movingMouse = false;
+    movingKey = false;
+    floating = false;
+    baseq = new Quaternion(1, 0, 0, 0);
+    yRotation = 0;
+    cz = 40;
+    startingRod = 1;
+    currentRod = 1;
+    deltaX = 0;
+    deltaY = 0;
+    numberOfMoves = 0;
+    allowedMoves = document.getElementById('allowedMoves').value;
+    maxLevel = document.getElementById('numberOfDiscs').value;
 
     var path = window.location.pathname;
     var page = path.split("/").pop();
@@ -501,18 +532,47 @@ var init = async function() {
     main();
 }
 
-function reset() {
+function start() {
     document.getElementById("directBox").checked="";
     document.getElementById("pointBox").checked="";
     document.getElementById("ambientBox").checked="";
 
-    document.getElementById("victory").style.visibility="hidden";
+    document.getElementById("end").style.visibility="hidden";
 
+    gameStarted = true;
     elevation = 90.0;
     angle = 90.0;
     lookRadius = 30.0;
+    gameEnded = false;
+    win = false;
+    movingMouse = false;
+    movingKey = false;
+    floating = false;
+    baseq = new Quaternion(1, 0, 0, 0);
+    yRotation = 0;
+    cz = 40;
+    startingRod = 1;
+    currentRod = 1;
+    deltaX = 0;
+    deltaY = 0;
+    numberOfMoves = 0;
+    allowedMoves = document.getElementById('allowedMoves').value;
+    maxLevel = document.getElementById('numberOfDiscs').value;
+    objects = [];
+    models = [];
+    modelsSerialized = [];
+
 
     init();
+}
+
+function setMinMoves(){
+    maxLevel = document.getElementById('numberOfDiscs').value;
+    let minMoves = 0;
+    for(let i=1; i<=maxLevel; i++){
+        minMoves = 2*minMoves + 1;
+    }
+    document.getElementById('allowedMoves').value = minMoves;
 }
 
 window.onload = init;
