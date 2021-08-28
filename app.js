@@ -127,95 +127,96 @@ function getRotatedMatrix(rvx, rvy, rvz) {
 }
 
 function keyFunctionDown(event) {
-    if(document.getElementById("victory").style.visibility=="hidden") {
-    switch (event.keyCode) {
-        case 68://D
-            //move camera to the right
-            if(!movingMouse && yRotation-step > -45) {
-                yRotation -= step;
-                objects[0].node.localMatrix = getRotatedMatrix(0.0, -step, 0.0);
+    if (document.getElementById("victory").style.visibility == "hidden") {
+        switch (event.keyCode) {
+            case 68://D
+                //move camera to the right
+                if (!movingMouse && yRotation - step > -45) {
+                    yRotation -= step;
+                    objects[0].node.localMatrix = getRotatedMatrix(0.0, -step, 0.0);
 
-            }
-            break;
-        case 65://A
-            //move camera to the left
-            if(!movingMouse && yRotation+step < 45) {
-                yRotation += step;
-                objects[0].node.localMatrix = getRotatedMatrix(0.0, step, 0.0);
-            }
-            break;
-        case 87://W
-            //zoom in
-            if(!movingMouse && lookRadius-step > 10){
-                lookRadius -= step;
-                cz -= step;
-            }
-            break;
-        case 83://S
-            //zoom out
-            if(!movingMouse && lookRadius+step < 50){
-                lookRadius += step;
-                cz += step;
-            }
-            break;
-        case 49://1
-            //rod 1
-            if(!movingMouse && !floating && startRod.length>0){
-                movingKey = true;
-                floating = true;
-                floatingDisc = startRod.getHighestDisc();
-                floatingDisc.float();
-                startingRod = 1;
-                currentRod = startingRod;
-            }
-            break;
-        case 50://2
-            //rod 2
-            if(!movingMouse && !floating && middleRod.length>0) {
-                movingKey = true;
-                floating = true;
-                floatingDisc = middleRod.getHighestDisc();
-                floatingDisc.float();
-                startingRod = 2;
-                currentRod = startingRod;
-            }
-            break;
-        case 51://3
-            //rod 3
-            if(!movingMouse && !floating && endRod.length>0) {
-                movingKey = true;
-                floating = true;
-                floatingDisc = endRod.getHighestDisc();
-                floatingDisc.float();
-                startingRod = 3;
-                currentRod = startingRod;
-            }
-            break;
-        case 37:
-            //shift left
-            if(!movingMouse && floating && currentRod != 1) {
-                currentRod--;
-                floatingDisc.shift();
-                //TODO update texture
-            }
-            break;
-        case 39:
-            //shift right
-            if(!movingMouse && floating && currentRod != 3) {
-                currentRod++;
-                floatingDisc.shift();
-                //TODO update texture
-            }
-            break;
-        case 13:
-            //accept rod
-            if(!movingMouse && floating && getRod(currentRod).canAddDisc(floatingDisc)){
-                floatingDisc.land();
-                startingRod = currentRod;
-                movingKey = false;
-                floating = false;
-            }
-            break;
+                }
+                break;
+            case 65://A
+                //move camera to the left
+                if (!movingMouse && yRotation + step < 45) {
+                    yRotation += step;
+                    objects[0].node.localMatrix = getRotatedMatrix(0.0, step, 0.0);
+                }
+                break;
+            case 87://W
+                //zoom in
+                if (!movingMouse && lookRadius - step > 10) {
+                    lookRadius -= step;
+                    cz -= step;
+                }
+                break;
+            case 83://S
+                //zoom out
+                if (!movingMouse && lookRadius + step < 50) {
+                    lookRadius += step;
+                    cz += step;
+                }
+                break;
+            case 49://1
+                //rod 1
+                if (!movingMouse && !floating && startRod.length > 0) {
+                    movingKey = true;
+                    floating = true;
+                    floatingDisc = startRod.getHighestDisc();
+                    floatingDisc.float();
+                    startingRod = 1;
+                    currentRod = startingRod;
+                }
+                break;
+            case 50://2
+                //rod 2
+                if (!movingMouse && !floating && middleRod.length > 0) {
+                    movingKey = true;
+                    floating = true;
+                    floatingDisc = middleRod.getHighestDisc();
+                    floatingDisc.float();
+                    startingRod = 2;
+                    currentRod = startingRod;
+                }
+                break;
+            case 51://3
+                //rod 3
+                if (!movingMouse && !floating && endRod.length > 0) {
+                    movingKey = true;
+                    floating = true;
+                    floatingDisc = endRod.getHighestDisc();
+                    floatingDisc.float();
+                    startingRod = 3;
+                    currentRod = startingRod;
+                }
+                break;
+            case 37:
+                //shift left
+                if (!movingMouse && floating && currentRod != 1) {
+                    currentRod--;
+                    floatingDisc.shift();
+                    //TODO update texture
+                }
+                break;
+            case 39:
+                //shift right
+                if (!movingMouse && floating && currentRod != 3) {
+                    currentRod++;
+                    floatingDisc.shift();
+                    //TODO update texture
+                }
+                break;
+            case 13:
+                //accept rod
+                if (!movingMouse && floating && getRod(currentRod).canAddDisc(floatingDisc)) {
+                    floatingDisc.land();
+                    startingRod = currentRod;
+                    movingKey = false;
+                    floating = false;
+                }
+                break;
+        }
     }
 }
 
