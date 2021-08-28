@@ -33,7 +33,7 @@ void main() {
   vec3 textureCol = texture(sampler, uvCoordinate).rgb;
 
 
-  vec3 spotLightDirection = normalize(lightPosition - fsPos); //luce generale scena
+  vec3 spotLightDirection = normalize(lightPosition - fsPos); //general light of the scene
 
 
   vec3 nEyeDirection = normalize(-fsPos); //direct

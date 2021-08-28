@@ -3,6 +3,31 @@ var baseDir;
 var shaderDir;
 var program;
 
+
+var positionLight = [-100.0, -900.0, -100.0];
+var spotLightColorGeneral = [1.0, 1.0, 1.0];
+var ambientLightColor = [0.2, 0.2, 0.2];
+
+
+//direct
+var directionalLightColor = [0.1, 1.0, 1.0];
+var lightDirectionHandle;
+var directionalLightTransformed;
+var lightColorHandleDir;
+
+//point
+var pointLightColor = [1.0, 1.0, 1.0];
+var lightPos = [0.0, 15.0, 20.0, 1.0];
+var lightPosTransformed;
+var lightTarget = 50;
+var lightDecay = 2;
+//var vertexMatrixPositionHandle = gl.getUniformLocation(program, 'pMatrix');
+var lightPosLocation;
+var lightTargetLocation;
+var lightDecayLocation;
+var lightColorHandlePoint;
+
+
 var mouseState = false;
 var lastMouseX = -100, lastMouseY = -100;
 function doMouseDown(event) {
@@ -36,98 +61,101 @@ function doMouseWheel(event) {
 }
 
 function keyFunctionDown(event) {
-    switch (event.keyCode) {
-        case 68:
-            //move camera to the right
-            if(angle-step > 30) {
-                angle -= step;
-            }
-            break;
-        case 65:
-            //move camera to the left
-            if(angle+step < 150) {
-                angle += step;
-            }
-            break;
-        case 81:
-            //high camera
-            if(elevation-step > 30) {
-                elevation -= step;
-            }
-            break;
-        case 69:
-            //low camera
-            if(elevation+step < 150) {
-                elevation += step;
-            }
-            break;
-        case 87:
-            //zoom in
-            if(lookRadius-step > 10){
-                lookRadius -= step;
-            }
-            break;
-        case 83:
-            //zoom out
-            if(lookRadius+step < 80){
-                lookRadius += step;
-            }
-            break;
-        case 49:
-            //rod 1
-            if(!floating && startRod.length>0) {
-                floating = true;
-                floatingDisc = startRod.getHighestDisc();
-                floatingDisc.float();
-                startingRod = 1;
-                currentRod = startingRod;
-            }
-            break;
-        case 50:
-            //rod 2
-            if(!floating && middleRod.length>0) {
-                floating = true;
-                floatingDisc = middleRod.getHighestDisc();
-                floatingDisc.float();
-                startingRod = 2;
-                currentRod = startingRod;
-            }
-            break;
-        case 51:
-            //rod 3
-            if(!floating && endRod.length>0) {
-                floating = true;
-                floatingDisc = endRod.getHighestDisc();
-                floatingDisc.float();
-                startingRod = 3;
-                currentRod = startingRod;
-            }
-            break;
-        case 37:
-            //shift left
-            if(floating && currentRod != 1) {
-                currentRod--;
-                floatingDisc.shift();
-                //TODO update texture
-            }
-            break;
-        case 39:
-            //shift right
-            if(floating && currentRod != 3) {
-                currentRod++;
-                floatingDisc.shift();
-                //TODO update texture
-            }
-            break;
-        case 13:
-            //accept rod
-            if(floating && getRod(startingRod).checkMoveDisc(getRod(currentRod))){
-                floatingDisc.land();
-                startingRod = currentRod;
-                floating = false;
-            }
-            break;
+    if(document.getElementById("victory").style.visibility=="hidden") {
+        switch (event.keyCode) {
+            case 68:
+                //move camera to the right
+                if(angle-step > 30) {
+                    angle -= step;
+                }
+                break;
+            case 65:
+                //move camera to the left
+                if(angle+step < 150) {
+                    angle += step;
+                }
+                break;
+            case 81:
+                //high camera
+                if(elevation-step > 30) {
+                    elevation -= step;
+                }
+                break;
+            case 69:
+                //low camera
+                if(elevation+step < 150) {
+                    elevation += step;
+                }
+                break;
+            case 87:
+                //zoom in
+                if(lookRadius-step > 10){
+                    lookRadius -= step;
+                }
+                break;
+            case 83:
+                //zoom out
+                if(lookRadius+step < 80){
+                    lookRadius += step;
+                }
+                break;
+            case 49:
+                //rod 1
+                if(!floating && startRod.length>0) {
+                    floating = true;
+                    floatingDisc = startRod.getHighestDisc();
+                    floatingDisc.float();
+                    startingRod = 1;
+                    currentRod = startingRod;
+                }
+                break;
+            case 50:
+                //rod 2
+                if(!floating && middleRod.length>0) {
+                    floating = true;
+                    floatingDisc = middleRod.getHighestDisc();
+                    floatingDisc.float();
+                    startingRod = 2;
+                    currentRod = startingRod;
+                }
+                break;
+            case 51:
+                //rod 3
+                if(!floating && endRod.length>0) {
+                    floating = true;
+                    floatingDisc = endRod.getHighestDisc();
+                    floatingDisc.float();
+                    startingRod = 3;
+                    currentRod = startingRod;
+                }
+                break;
+            case 37:
+                //shift left
+                if(floating && currentRod != 1) {
+                    currentRod--;
+                    floatingDisc.shift();
+                    //TODO update texture
+                }
+                break;
+            case 39:
+                //shift right
+                if(floating && currentRod != 3) {
+                    currentRod++;
+                    floatingDisc.shift();
+                    //TODO update texture
+                }
+                break;
+            case 13:
+                //accept rod
+                if(floating && getRod(startingRod).checkMoveDisc(getRod(currentRod))){
+                    floatingDisc.land();
+                    startingRod = currentRod;
+                    floating = false;
+                }
+                break;
+        }
     }
+    
 }
 
 function computeModelData() {
@@ -185,27 +213,6 @@ function getModel() {
 
 var main = function (){
 
-    var positionLight = [-100.0, -900.0, -100.0];
-    var spotLightColorGeneral = [1.0, 1.0, 1.0];
-    var ambientLightColor = [0.2, 0.2, 0.2];
-
-
-    //direct
-    var directionalLightColor = [0.1, 1.0, 1.0];
-    var lightDirectionHandle = gl.getUniformLocation(program, 'lightDirection');
-    var lightColorHandleDir = gl.getUniformLocation(program, 'lightColor');
-
-    //point
-    var pointLightColor = [1.0, 1.0, 1.0];
-    var lightPos = [0.0, 15.0, 20.0, 1.0];
-    var lightTarget = 50;
-    var lightDecay = 2;
-    //var vertexMatrixPositionHandle = gl.getUniformLocation(program, 'pMatrix');
-    var lightPosLocation = gl.getUniformLocation(program, 'LAPos');
-    var lightTargetLocation = gl.getUniformLocation(program, "LATarget");
-    var lightDecayLocation = gl.getUniformLocation(program, "LADecay");
-    var lightColorHandlePoint = gl.getUniformLocation(program, 'LAlightColor');
-
     computeSceneGraph();
 
     window.addEventListener("mousedown", doMouseDown, false);
@@ -239,11 +246,17 @@ var main = function (){
         // Shaders for direct light for room and scenary
         materialDiffColorHandle = gl.getUniformLocation(program, 'mDiffColor');
         lightPositionHandle = gl.getUniformLocation(program, 'lightPosition');
-        //lightPositionHandle = gl.getUniformLocation(program, 'lightDirection');
-        //lightColorHandle = gl.getUniformLocation(program, 'lightColor'); //direct
-        //lightColorHandle = gl.getUniformLocation(program, 'LAlightColor'); //point
-
         lightColorHandleSpot = gl.getUniformLocation(program, 'lightColorSpot');
+
+        lightDirectionHandle = gl.getUniformLocation(program, 'lightDirection');
+        lightColorHandleDir = gl.getUniformLocation(program, 'lightColor');
+
+        lightPosLocation = gl.getUniformLocation(program, 'LAPos');
+        lightTargetLocation = gl.getUniformLocation(program, "LATarget");
+        lightDecayLocation = gl.getUniformLocation(program, "LADecay");
+        lightColorHandlePoint = gl.getUniformLocation(program, 'LAlightColor');
+
+
 
         ambientLightColorHandle = gl.getUniformLocation(program, 'ambientLightColor');
     });
@@ -306,9 +319,9 @@ var main = function (){
 
             //Transform from World Space to Camera Space
             var lightDirMatrix = utils.invertMatrix(utils.transposeMatrix(viewMatrix)); //direct
-            var directionalLightTransformed = utils.multiplyMatrix3Vector3(utils.sub3x3from4x4((lightDirMatrix)), directionalLight);    //direct
+            directionalLightTransformed = utils.multiplyMatrix3Vector3(utils.sub3x3from4x4((lightDirMatrix)), directionalLight);    //direct
 
-            var lightPosTransformed = utils.multiplyMatrixVector(viewMatrix, lightPos);    //point
+            lightPosTransformed = utils.multiplyMatrixVector(viewMatrix, lightPos);    //point
 
             gl.uniformMatrix4fv(object.drawInfo.matrixLocation, gl.FALSE, utils.transposeMatrix(projMatrix));
             gl.uniformMatrix4fv(object.drawInfo.normalMatrixPositionHandle, gl.FALSE, utils.transposeMatrix(normalMatrix));
@@ -316,7 +329,7 @@ var main = function (){
             // gl.uniformMatrix4fv(vertexMatrixPositionHandle, gl.FALSE, utils.transposeMatrix(worldViewMatrix));
             gl.uniform3fv(object.drawInfo.eyePositionHandle, eyePos);
 
-            gl.uniform3fv(lightPosLocation, lightPosTransformed.slice(0,3));    //point
+            //gl.uniform3fv(lightPosLocation, lightPosTransformed.slice(0,3));    //point
 
 
             // Shaders for lights
@@ -325,17 +338,17 @@ var main = function (){
             gl.uniform3fv(lightColorHandleSpot, spotLightColorGeneral); //general spot
             gl.uniform3fv(lightPositionHandle, positionLight);  //general spot
 
-            gl.uniform3fv(lightColorHandleDir, directionalLightColor);  //direct
-            gl.uniform3fv(lightDirectionHandle, directionalLightTransformed);    //direct
+            // gl.uniform3fv(lightColorHandleDir, directionalLightColor);  //direct
+            // gl.uniform3fv(lightDirectionHandle, directionalLightTransformed);    //direct
 
-            gl.uniform3fv(lightColorHandlePoint, pointLightColor);    //point
-            gl.uniform1f(lightTargetLocation,  lightTarget);    //point
-            gl.uniform1f(lightDecayLocation,  lightDecay);    //point
+            // gl.uniform3fv(lightColorHandlePoint, pointLightColor);    //point
+            // gl.uniform1f(lightTargetLocation,  lightTarget);    //point
+            // gl.uniform1f(lightDecayLocation,  lightDecay);    //point
 
 
-            gl.uniform3fv(ambientLightColorHandle, ambientLightColor);  //constant ambient
+            // gl.uniform3fv(ambientLightColorHandle, ambientLightColor);  //constant ambient
 
-            
+
 
 
             // Render the Texture
@@ -378,6 +391,8 @@ var init = async function() {
     // General setup
     //
     utils.resizeCanvasToDisplaySize(gl.canvas);
+    gl.canvas.width *= 0.75;
+    gl.canvas.height *= 0.95;
     gl.viewport(0, 0, gl.canvas.width, gl.canvas.height);
     gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
     gl.enable(gl.DEPTH_TEST);
@@ -406,6 +421,20 @@ var init = async function() {
     //initiLight();
 
     main();
+}
+
+function reset() {
+    document.getElementById("directBox").checked="";
+    document.getElementById("pointBox").checked="";
+    document.getElementById("ambientBox").checked="";
+
+    document.getElementById("victory").style.visibility="hidden";
+
+    elevation = 90.0;
+    angle = 90.0;
+    lookRadius = 30.0;
+    
+    init();
 }
 
 window.onload = init;
