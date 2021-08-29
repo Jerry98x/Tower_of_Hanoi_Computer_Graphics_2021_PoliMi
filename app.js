@@ -40,6 +40,7 @@ function doMouseDown(event) {
                 floatingDisc.float();
                 floating = true;
             }
+            //console.log(floatingDisc.node.localMatrix);
         } else if (!movingKey && floating && !goingUp && !goingDown) {
             currentRod = getPointedRod(event);
             if (currentRod != 0 && getRod(currentRod).canAddDisc(floatingDisc)) {
@@ -47,6 +48,7 @@ function doMouseDown(event) {
                 movingMouse = false;
                 floating = false;
             }
+            //console.log(floatingDisc.node.localMatrix);
         }
     }
 }
@@ -229,6 +231,7 @@ function keyFunctionDown(event) {
                     floating = false;
                 }
             }
+            event.preventDefault();
             break;
     }
 }
@@ -345,24 +348,24 @@ var main = function (){
     function drawScene() {
 
         if(goingUp) {
-            if (deltaY >= floatingHeight) {
-                //floatingDisc.translate(0.0, stepY, 0.0);
+            if (deltaY+stepY >= floatingHeight) {
+                floatingDisc.translate(0.0, stepY, 0.0);
                 deltaY = floatingHeight;
                 goingUp = false;
             } else {
                 floatingDisc.translate(0.0, stepY, 0.0);
+                deltaY += stepY;
             }
-            deltaY += stepY;
         }
         if(goingDown){
-            if (deltaY <= stepY) {
+            if (deltaY-stepY <= 0.0) {
                 floatingDisc.translate(0.0, -stepY, 0.0);
                 deltaY = 0.0;
                 goingDown = false;
             } else {
                 floatingDisc.translate(0.0, -stepY, 0.0);
+                deltaY -= stepY;
             }
-            deltaY -= stepY;
         }
 
         // Clear
@@ -389,13 +392,8 @@ var main = function (){
         ly = lightRadius * Math.sin(utils.degToRad(-lightElevation));
         var directionalLight = [lz, ly, lx];
 
-
-
-
-
-
         // Update all world matrices in the scene graph
-        objects[0].node.updateWorldMatrix(utils.identityMatrix());
+        objects[0].node.updateWorldMatrix();
 
         // Compute all the matrices for rendering
         objects.forEach(function(object) {
