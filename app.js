@@ -39,31 +39,51 @@ function doMouseDown(event) {
                 floatingDisc = rod.discs[rod.length - 1];
                 floatingDisc.float();
                 floating = true;
+                document.getElementById('allowed').innerHTML = okMsg;
+                document.getElementById('allowedPane').style.visibility = 'visible';
             }
-            //console.log(floatingDisc.node.localMatrix);
         } else if (!movingKey && floating && !goingUp && !goingDown) {
             currentRod = getPointedRod(event);
             if (currentRod != 0 && getRod(currentRod).canAddDisc(floatingDisc)) {
                 floatingDisc.land();
                 movingMouse = false;
                 floating = false;
+                document.getElementById('allowedPane').style.visibility = 'hidden';
             }
-            //console.log(floatingDisc.node.localMatrix);
         }
     }
 }
 
+var okMsg = 'ALLOWED';
+var notOkMsg = 'NOT ALLOWED';
+
 function doMouseMove(event) {
     if(!gameEnded && gameStarted) {
         if (movingMouse && !movingKey && !goingUp && !goingDown) {
-            updateMouseWorldX(event);
+            let tmpRod = getPointedRod(event);
             var dx = mouseWorldX - currentDiscX;
             if (dx != 0) {
                 floatingDisc.translate(dx, 0.0, 0.0);
+                updateAllowed(tmpRod);
             }
             currentDiscX += dx;
             deltaX += dx;
         }
+    }
+}
+
+function updateAllowed(pointedRod){
+    let allowedPane = document.getElementById('allowedPane');
+    if(pointedRod != 0 && getRod(pointedRod).canAddDisc(floatingDisc)){
+        allowedPane.style.visibility = 'visible';
+        allowedPane.style.borderColor = 'green';
+        document.getElementById('allowed').innerHTML = okMsg;
+    } else if (pointedRod != 0) {
+        allowedPane.style.visibility = 'visible';
+        allowedPane.style.borderColor = 'red';
+        document.getElementById('allowed').innerHTML = notOkMsg;
+    } else {
+        allowedPane.style.visibility = 'hidden';
     }
 }
 
@@ -112,11 +132,11 @@ function updateMouseWorldX(event){
 
 function getPointedRod(event) {
     updateMouseWorldX(event);
-    if (x11 < mouseWorldX && mouseWorldX < x12) {
+    if (-outerX < mouseWorldX && mouseWorldX < -innerX) {
         return 1;
-    } else if (x21 < mouseWorldX && mouseWorldX < x22) {
+    } else if (-innerX < mouseWorldX && mouseWorldX < innerX) {
         return 2;
-    } else if (x31 < mouseWorldX && mouseWorldX < x32) {
+    } else if (innerX < mouseWorldX && mouseWorldX < outerX) {
         return 3;
     }
     return 0;
@@ -172,6 +192,8 @@ function keyFunctionDown(event) {
                     floatingDisc.float();
                     startingRod = 1;
                     currentRod = startingRod;
+                    document.getElementById('allowed').innerHTML = okMsg;
+                    document.getElementById('allowedPane').style.visibility = 'visible';
                 }
             }
             break;
@@ -185,6 +207,8 @@ function keyFunctionDown(event) {
                     floatingDisc.float();
                     startingRod = 2;
                     currentRod = startingRod;
+                    document.getElementById('allowed').innerHTML = okMsg;
+                    document.getElementById('allowedPane').style.visibility = 'visible';
                 }
             }
             break;
@@ -198,6 +222,8 @@ function keyFunctionDown(event) {
                     floatingDisc.float();
                     startingRod = 3;
                     currentRod = startingRod;
+                    document.getElementById('allowed').innerHTML = okMsg;
+                    document.getElementById('allowedPane').style.visibility = 'visible';
                 }
             }
             break;
@@ -207,7 +233,7 @@ function keyFunctionDown(event) {
                 if (!movingMouse && floating && currentRod != 1) {
                     currentRod--;
                     floatingDisc.shift();
-                    //TODO update texture
+                    updateAllowed(currentRod);
                 }
             }
             break;
@@ -217,7 +243,7 @@ function keyFunctionDown(event) {
                 if (!movingMouse && floating && currentRod != 3) {
                     currentRod++;
                     floatingDisc.shift();
-                    //TODO update texture
+                    updateAllowed(currentRod);
                 }
             }
             break;
@@ -229,6 +255,7 @@ function keyFunctionDown(event) {
                     startingRod = currentRod;
                     movingKey = false;
                     floating = false;
+                    document.getElementById('allowedPane').style.visibility = 'hidden';
                 }
             }
             event.preventDefault();
