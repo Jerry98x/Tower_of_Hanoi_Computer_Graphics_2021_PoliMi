@@ -45,6 +45,8 @@ function doMouseDown(event) {
                 floatingDisc = rod.discs[rod.length - 1];
                 floatingDisc.float();
                 floating = true;
+                document.getElementById('allowed').innerHTML = okMsg;
+                document.getElementById('allowedPane').style.visibility = 'visible';
             }
         } else if (!movingKey && floating && !goingUp && !goingDown) {
             currentRod = getPointedRod(event);
@@ -52,22 +54,42 @@ function doMouseDown(event) {
                 floatingDisc.land();
                 movingMouse = false;
                 floating = false;
+                document.getElementById('allowedPane').style.visibility = 'hidden';
             }
         }
     }
 }
 
+var okMsg = 'ALLOWED';
+var notOkMsg = 'NOT ALLOWED';
+
 function doMouseMove(event) {
     if(!gameEnded && gameStarted) {
         if (movingMouse && !movingKey && !goingUp && !goingDown) {
-            updateMouseWorldX(event);
+            let tmpRod = getPointedRod(event);
             var dx = mouseWorldX - currentDiscX;
             if (dx != 0) {
                 floatingDisc.translate(dx, 0.0, 0.0);
+                updateAllowed(tmpRod);
             }
             currentDiscX += dx;
             deltaX += dx;
         }
+    }
+}
+
+function updateAllowed(pointedRod){
+    let allowedPane = document.getElementById('allowedPane');
+    if(pointedRod != 0 && getRod(pointedRod).canAddDisc(floatingDisc)){
+        allowedPane.style.visibility = 'visible';
+        allowedPane.style.borderColor = 'green';
+        document.getElementById('allowed').innerHTML = okMsg;
+    } else if (pointedRod != 0) {
+        allowedPane.style.visibility = 'visible';
+        allowedPane.style.borderColor = 'red';
+        document.getElementById('allowed').innerHTML = notOkMsg;
+    } else {
+        allowedPane.style.visibility = 'hidden';
     }
 }
 
@@ -116,11 +138,11 @@ function updateMouseWorldX(event){
 
 function getPointedRod(event) {
     updateMouseWorldX(event);
-    if (x11 < mouseWorldX && mouseWorldX < x12) {
+    if (-outerX < mouseWorldX && mouseWorldX < -innerX) {
         return 1;
-    } else if (x21 < mouseWorldX && mouseWorldX < x22) {
+    } else if (-innerX < mouseWorldX && mouseWorldX < innerX) {
         return 2;
-    } else if (x31 < mouseWorldX && mouseWorldX < x32) {
+    } else if (innerX < mouseWorldX && mouseWorldX < outerX) {
         return 3;
     }
     return 0;
@@ -176,6 +198,8 @@ function keyFunctionDown(event) {
                     floatingDisc.float();
                     startingRod = 1;
                     currentRod = startingRod;
+                    document.getElementById('allowed').innerHTML = okMsg;
+                    document.getElementById('allowedPane').style.visibility = 'visible';
                 }
             }
             break;
@@ -189,6 +213,8 @@ function keyFunctionDown(event) {
                     floatingDisc.float();
                     startingRod = 2;
                     currentRod = startingRod;
+                    document.getElementById('allowed').innerHTML = okMsg;
+                    document.getElementById('allowedPane').style.visibility = 'visible';
                 }
             }
             break;
@@ -202,6 +228,8 @@ function keyFunctionDown(event) {
                     floatingDisc.float();
                     startingRod = 3;
                     currentRod = startingRod;
+                    document.getElementById('allowed').innerHTML = okMsg;
+                    document.getElementById('allowedPane').style.visibility = 'visible';
                 }
             }
             break;
@@ -211,7 +239,7 @@ function keyFunctionDown(event) {
                 if (!movingMouse && floating && currentRod != 1) {
                     currentRod--;
                     floatingDisc.shift();
-                    //TODO update texture
+                    updateAllowed(currentRod);
                 }
             }
             break;
@@ -221,7 +249,7 @@ function keyFunctionDown(event) {
                 if (!movingMouse && floating && currentRod != 3) {
                     currentRod++;
                     floatingDisc.shift();
-                    //TODO update texture
+                    updateAllowed(currentRod);
                 }
             }
             break;
@@ -233,6 +261,7 @@ function keyFunctionDown(event) {
                     startingRod = currentRod;
                     movingKey = false;
                     floating = false;
+                    document.getElementById('allowedPane').style.visibility = 'hidden';
                 }
             }
             event.preventDefault();
@@ -352,17 +381,17 @@ var main = function (){
     function drawScene() {
 
         if(goingUp) {
-            if (deltaY >= floatingHeight) {
-                //floatingDisc.translate(0.0, stepY, 0.0);
+            if (deltaY+stepY >= floatingHeight) {
+                floatingDisc.translate(0.0, stepY, 0.0);
                 deltaY = floatingHeight;
                 goingUp = false;
             } else {
                 floatingDisc.translate(0.0, stepY, 0.0);
+                deltaY += stepY;
             }
-            deltaY += stepY;
         }
         if(goingDown){
-            if (deltaY <= stepY) {
+            if (deltaY-stepY <= 0.0) {
                 floatingDisc.translate(0.0, -stepY, 0.0);
                 deltaY = 0.0;
                 goingDown = false;
@@ -371,8 +400,8 @@ var main = function (){
                 }
             } else {
                 floatingDisc.translate(0.0, -stepY, 0.0);
+                deltaY -= stepY;
             }
-            deltaY -= stepY;
         }
 
         // Clear
@@ -394,13 +423,15 @@ var main = function (){
         var cameraMatrix = utils.LookAt(cameraPosition, target, up);
         var viewMatrix = utils.invertMatrix(cameraMatrix);
 
+        
         directionalLight = [Math.cos(utils.degToRad(dirLightTheta)) * Math.cos(utils.degToRad(dirLightPhi)), Math.sin(utils.degToRad(dirLightTheta)), Math.cos(utils.degToRad(dirLightTheta)) * Math.sin(utils.degToRad(dirLightPhi))];
         //directionalLight = [Math.sin(utils.degToRad(dirLightTheta)) * Math.cos(utils.degToRad(dirLightPhi)), Math.cos(utils.degToRad(dirLightTheta)), Math.sin(utils.degToRad(dirLightTheta)) * Math.sin(utils.degToRad(dirLightPhi))];
 
         
 
+
         // Update all world matrices in the scene graph
-        objects[0].node.updateWorldMatrix(utils.identityMatrix());
+        objects[0].node.updateWorldMatrix();
 
         // Compute all the matrices for rendering
         objects.forEach(function(object) {
