@@ -4,28 +4,34 @@ var shaderDir;
 var program;
 
 
+
 var positionLight = [-100.0, -900.0, -100.0];
 var spotLightColorGeneral = [1.0, 1.0, 1.0];
-var ambientLightColor = [0.2, 0.2, 0.2];
 
 
 //direct
-var directionalLightColor = [0.1, 1.0, 1.0];
+var dirLightTheta = initialDirLightTheta;
+var dirLightPhi = initialDirLightPhi;
+var directionalLight;
+var directionalLightColor = [1.0, 1.0, 1.0];
 var lightDirectionHandle;
 var directionalLightTransformed;
 var lightColorHandleDir;
 
 //point
 var pointLightColor = [1.0, 1.0, 1.0];
-var lightPos = [0.0, 15.0, 20.0, 1.0];
+var lightPos = [initialLightPos[0], initialLightPos[1], initialLightPos[2], initialLightPos[3]];
 var lightPosTransformed;
-var lightTarget = 50;
-var lightDecay = 2;
-//var vertexMatrixPositionHandle = gl.getUniformLocation(program, 'pMatrix');
+var lightTarget = initialLightTarget;
+var lightDecay = initialLightDecay;
 var lightPosLocation;
 var lightTargetLocation;
 var lightDecayLocation;
 var lightColorHandlePoint;
+
+
+//constant ambient
+var ambientLightColor = [0.2, 0.2, 0.2];
 
 
 function doMouseDown(event) {
@@ -229,6 +235,7 @@ function keyFunctionDown(event) {
                     floating = false;
                 }
             }
+            event.preventDefault();
             break;
     }
 }
@@ -359,6 +366,9 @@ var main = function (){
                 floatingDisc.translate(0.0, -stepY, 0.0);
                 deltaY = 0.0;
                 goingDown = false;
+                if(gameEnded) {
+                    document.getElementById("end").style.visibility="visible";
+                }
             } else {
                 floatingDisc.translate(0.0, -stepY, 0.0);
             }
@@ -384,15 +394,10 @@ var main = function (){
         var cameraMatrix = utils.LookAt(cameraPosition, target, up);
         var viewMatrix = utils.invertMatrix(cameraMatrix);
 
-        lz = lightRadius * Math.cos(utils.degToRad(-lightAngle)) * Math.cos(utils.degToRad(-lightElevation));
-        lx = lightRadius * Math.sin(utils.degToRad(-lightAngle)) * Math.cos(utils.degToRad(-lightElevation));
-        ly = lightRadius * Math.sin(utils.degToRad(-lightElevation));
-        var directionalLight = [lz, ly, lx];
+        directionalLight = [Math.cos(utils.degToRad(dirLightTheta)) * Math.cos(utils.degToRad(dirLightPhi)), Math.sin(utils.degToRad(dirLightTheta)), Math.cos(utils.degToRad(dirLightTheta)) * Math.sin(utils.degToRad(dirLightPhi))];
+        //directionalLight = [Math.sin(utils.degToRad(dirLightTheta)) * Math.cos(utils.degToRad(dirLightPhi)), Math.cos(utils.degToRad(dirLightTheta)), Math.sin(utils.degToRad(dirLightTheta)) * Math.sin(utils.degToRad(dirLightPhi))];
 
-
-
-
-
+        
 
         // Update all world matrices in the scene graph
         objects[0].node.updateWorldMatrix(utils.identityMatrix());
@@ -412,15 +417,16 @@ var main = function (){
             var lightDirMatrix = utils.invertMatrix(utils.transposeMatrix(viewMatrix)); //direct
             directionalLightTransformed = utils.multiplyMatrix3Vector3(utils.sub3x3from4x4((lightDirMatrix)), directionalLight);    //direct
 
+            gl.uniformMatrix4fv(object.drawInfo.vertexMatrixPositionHandle, gl.FALSE, utils.transposeMatrix(worldViewMatrix)); 
             lightPosTransformed = utils.multiplyMatrixVector(viewMatrix, lightPos);    //point
+            
 
             gl.uniformMatrix4fv(object.drawInfo.matrixLocation, gl.FALSE, utils.transposeMatrix(projMatrix));
             gl.uniformMatrix4fv(object.drawInfo.normalMatrixPositionHandle, gl.FALSE, utils.transposeMatrix(normalMatrix));
-            gl.uniformMatrix4fv(object.drawInfo.vertexMatrixPositionHandle, gl.FALSE, utils.transposeMatrix(worldViewMatrix));
-            // gl.uniformMatrix4fv(vertexMatrixPositionHandle, gl.FALSE, utils.transposeMatrix(worldViewMatrix));
+
             gl.uniform3fv(object.drawInfo.eyePositionHandle, eyePos);
 
-            //gl.uniform3fv(lightPosLocation, lightPosTransformed.slice(0,3));    //point
+            
 
 
             // Shaders for lights
@@ -429,15 +435,41 @@ var main = function (){
             gl.uniform3fv(lightColorHandleSpot, spotLightColorGeneral); //general spot
             gl.uniform3fv(lightPositionHandle, positionLight);  //general spot
 
-            // gl.uniform3fv(lightColorHandleDir, directionalLightColor);  //direct
-            // gl.uniform3fv(lightDirectionHandle, directionalLightTransformed);    //direct
 
-            // gl.uniform3fv(lightColorHandlePoint, pointLightColor);    //point
-            // gl.uniform1f(lightTargetLocation,  lightTarget);    //point
-            // gl.uniform1f(lightDecayLocation,  lightDecay);    //point
+            //direct
+            if(document.getElementById("directBox").checked) {
+                gl.uniform3fv(lightColorHandleDir, directionalLightColor);
+                gl.uniform3fv(lightDirectionHandle, directionalLightTransformed);
+            }
+            else {
+                gl.uniform3fv(lightColorHandleDir, [0.0, 0.0, 0.0]);
+                gl.uniform3fv(lightDirectionHandle, [0.0, 0.0, 0.0]);
+            }
 
 
-            // gl.uniform3fv(ambientLightColorHandle, ambientLightColor);  //constant ambient
+            //point
+            if(document.getElementById("pointBox").checked) {
+                gl.uniform3fv(lightColorHandlePoint, pointLightColor);
+                gl.uniform3fv(lightPosLocation, lightPosTransformed.slice(0,3));
+                gl.uniform1f(lightTargetLocation,  lightTarget);
+                gl.uniform1f(lightDecayLocation,  lightDecay);
+            }
+            else {
+                gl.uniform3fv(lightColorHandlePoint, [0.0, 0.0, 0.0]);
+                gl.uniform3fv(lightPosLocation, [0.0, 0.0, 0.0]);
+                gl.uniform1f(lightTargetLocation, 0);
+                gl.uniform1f(lightDecayLocation, 0)
+            }
+            
+
+            //constant ambient
+            if(document.getElementById("ambientBox").checked) {
+                gl.uniform3fv(ambientLightColorHandle, ambientLightColor);
+            }
+            else {
+                gl.uniform3fv(ambientLightColorHandle, [0.0, 0.0, 0.0]);
+            }
+
 
 
 
@@ -499,9 +531,14 @@ var init = async function() {
     //
     // General setup
     //
-    utils.resizeCanvasToDisplaySize(gl.canvas);
-    gl.canvas.width *= 0.75;
-    gl.canvas.height *= 0.95;
+    utils.resizeCanvasToPercentage(gl.canvas, 0.75, 0.95);
+
+
+    // var optionsColumn = document.getElementById("options");
+
+    // utils.resizeElementToPercentageStyle(optionsColumn, 0.25, 0.05);
+
+
     gl.viewport(0, 0, gl.canvas.width, gl.canvas.height);
     gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
     gl.enable(gl.DEPTH_TEST);
@@ -536,6 +573,9 @@ function start() {
     document.getElementById("directBox").checked="";
     document.getElementById("pointBox").checked="";
     document.getElementById("ambientBox").checked="";
+
+    document.getElementById("directional_custom").innerHTML = "";
+    document.getElementById("point_custom").innerHTML = "";
 
     document.getElementById("end").style.visibility="hidden";
 
@@ -574,5 +614,15 @@ function setMinMoves(){
     }
     document.getElementById('allowedMoves').value = minMoves;
 }
+
+// function resizeOptionsColum(opt) {
+//     const expandFullScreenOpt = () => {
+//         opt.width = window.innerWidth;
+//         opt.height = window.innerHeight;
+          
+//       };
+//       expandFullScreenOpt();
+//       window.addEventListener('resize', expandFullScreenOpt);
+// }
 
 window.onload = init;

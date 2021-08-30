@@ -9,7 +9,7 @@
 </head>
 <body>
 
-    <table style="border:2.5px dotted green">
+    <table style="border:2.5px dotted blue">
         <tr>
             <div>
                 
@@ -35,10 +35,16 @@
                 </td>
                 
 
-                <div style="position: absolute; z-index: 1; right: 0.8em; top: 0.5em; width:320px; height:95%; vertical-align: top; background-color: lightgrey; border-style: dotted; border-color: green; opacity: 0.8; padding: 5px 10px 5px 10px; overflow:auto; text-align: center">
+                <div id="options" style="position: absolute; z-index: 1; right: 0.8em; top: 0.5em; width:320px; height:95%; vertical-align: top; background-color: lightgrey; border-style: dotted; border-color: blue; opacity: 0.8; padding: 5px 10px 5px 10px; overflow:auto; text-align: center">
+                    <p>
+                        <div>
+                            <img src="presentation/alcremie.png" alt="alcremie" height="145" width="145">
+                            <img src="presentation/alcremie_shiny.png" alt="alcremie_shiny" height="145" width="145">
+                        </div>
+                    </p>
                     <p>
                         <b style="font-family: Arial, Helvetica, sans-serif; font-size: larger; color: black">Controls</b>
-                        <ul style="font-family: Helvetica; text-align: left; line-height: 75%">
+                        <ul style="font-family: Helvetica; text-align: left">
                             <li>
                                 Zoom: W/S
                             </li>
@@ -58,26 +64,60 @@
                             <li>
                                 Land disk: Enter
                             </li>
+                            <br>
+                            <li>
+                                Mouse controls: click to select the disk or make it land (no need to hold it down)
+                            </li>
                         </ul>
                     </p>
 
                     <p>
-                        <b style="font-family: Arial, Helvetica, sans-serif; font-size: larger; color: black">Number of discs</b>
-                        <input type="number" id="numberOfDiscs" min="1" max="7" step="1" value="7">
-                    </p>
-                    <p>
-                        <b style="font-family: Arial, Helvetica, sans-serif; font-size: larger; color: black">Total moves allowed (0 means infinite)</b><br>
-                        <input type="number" id="allowedMoves" min="0" max="999" step="1" value="0">
-                    </p>
-                    <p>
-                        <button type="button" id="minMoves" onclick="setMinMoves()">SET MINIMUM OF MOVES BASED ON NUMBER OF DISCS</button>
+                        <div>
+                            <img src="presentation/alcremie.png" alt="alcremie" height="30" width="30">
+                            <img src="presentation/alcremie_shiny.png" alt="alcremie_shiny" height="30" width="30">
+                            <img src="presentation/alcremie.png" alt="alcremie" height="30" width="30">
+                            <img src="presentation/alcremie_shiny.png" alt="alcremie_shiny" height="30" width="30">
+                            <img src="presentation/alcremie.png" alt="alcremie" height="30" width="30">
+                            <img src="presentation/alcremie_shiny.png" alt="alcremie_shiny" height="30" width="30">
+                            <img src="presentation/alcremie.png" alt="alcremie" height="30" width="30">
+                            <img src="presentation/alcremie_shiny.png" alt="alcremie_shiny" height="30" width="30">
+                        </div>
                     </p>
 
                     <p>
-                        <b style="font-family: Arial, Helvetica, sans-serif; font-size: larger; color: black">Moves done
+                        <b style="font-family: Arial, Helvetica, sans-serif; font-size: larger; color: black">Number of discs:</b>
+                        <input type="number" id="numberOfDiscs" min="1" max="7" step="1" value="7">
+                    </p>
+                    <p>
+                        <b style="font-family: Arial, Helvetica, sans-serif; font-size: larger; color: black">Total moves allowed (0 = ∞):</b><br>
+                        <input type="number" id="allowedMoves" min="0" max="999" step="1" value="0">
+                    </p>
+                    <p>
+                        <button type="button" id="minMoves" onclick="setMinMoves()">SET MINIMUM OF MOVES BASED ON THE NUMBER OF DISCS</button>
+                    </p>
+
+                    <p>
+                        <b style="font-family: Arial, Helvetica, sans-serif; font-size: larger; color: black">Moves done:
                         <output id="numberOfMoves">
                         </output>
                         </b>
+                    </p>
+
+                    <p>
+                        <button style="background-color: green" type="button" id="button" onclick="start()">START</button>
+                    </p>
+
+                    <p>
+                        <div>
+                            <img src="presentation/alcremie.png" alt="alcremie" height="30" width="30">
+                            <img src="presentation/alcremie_shiny.png" alt="alcremie_shiny" height="30" width="30">
+                            <img src="presentation/alcremie.png" alt="alcremie" height="30" width="30">
+                            <img src="presentation/alcremie_shiny.png" alt="alcremie_shiny" height="30" width="30">
+                            <img src="presentation/alcremie.png" alt="alcremie" height="30" width="30">
+                            <img src="presentation/alcremie_shiny.png" alt="alcremie_shiny" height="30" width="30">
+                            <img src="presentation/alcremie.png" alt="alcremie" height="30" width="30">
+                            <img src="presentation/alcremie_shiny.png" alt="alcremie_shiny" height="30" width="30">
+                        </div>
                     </p>
                         
                     <p>
@@ -88,37 +128,50 @@
                         </div>
                         <div style="font-family: Helvetica; text-align: left">
                             <input type="checkbox" id="directBox" name="direct" onchange="checkboxChanged(this)">
-                            <label for="direct">Direct light</label>
+                            <label for="directBox">Direct light</label>
                         </div>
                         <div style="font-family: Helvetica; text-align: left">
                             <input type="checkbox" id="pointBox" name="point"  onchange="checkboxChanged(this)">
-                            <label for="point">Point light</label>
+                            <label for="pointBox">Point light</label>
                         </div>
                         <div style="font-family: Helvetica; text-align: left">
                             <input type="checkbox" id="ambientBox" name="ambient"  onchange="checkboxChanged(this)">
-                            <label for="ambient">Ambient light</label>
+                            <label for="ambientBox">Ambient light</label>
                         </div>
                     </p>
 
+                    <div id="directional_custom">
+                        <!-- <p>
+                            <b style="font-size: medium;">Directional</b>
+                            <br>
+                            Left <input autocomplete="off" type="range" id="horizontal-rotation" min="0" max="1" step="0.01" value="0.5"> Right <br/>
+                            Down <input autocomplete="off" type="range" id="vertical-rotation" min="0" max="1" step="0.01" value="0.5"> Up
+                        </p> -->
+                    </div>
+
+                    <div id="point_custom">
+                        <!-- <p>
+                            <b style="font-size: medium;">Point</b>
+                            <br>
+                            X <input autocomplete="off" type="range" id="horizontalrotation" min="0" max="1" step="0.01" value="0.5"><br>
+                            Y <input autocomplete="off" type="range" id="vertical-rotation" min="0" max="1" step="0.01" value="0.5"><br>
+                            Z <input autocomplete="off" type="range" id="horizontal-rotation" min="0" max="1" step="0.01" value="0.5"><br>
+                            Decay (β) <input autocomplete="off" type="range" id="horizontal-rotation" min="0" max="1" step="0.01" value="0.5"><br>
+                            Target distance (g) <input autocomplete="off" type="range" id="horizontal-rotation" min="0" max="1" step="0.01" value="0.5">
+                            
+                        </p> -->
+                    </div>
+
                     <p>
-                        <button style="background-color: green" type="button" id="button" onclick="start()">START</button>
+                        <button style="background-color: yellow" type="button" id="button" onclick="resetLightCustomization()">RESET LIGHTS</button>
                     </p>
+                    
 
                     <p>
-                        <div class="alcr_img">
-
-                            <img src="presentation/alcremie.png" alt="alcremie" height="150" width="150">
-                            <img src="presentation/alcremie_shiny.png" alt="alcremie_shiny" height="150" width="150">
-
-
-                            <!-- <div class="img_container">
-                                <img src="presentation/alcremie.png" alt="alcremie" height="150" width="150">
-                            </div>
-                            <div class="img_container">
-                                <img src="presentation/alcremie_shiny.png" alt="alcremie_shiny" height="150" width="150">
-                            </div> -->
+                        <div>
+                            <img src="presentation/alcremie.png" alt="alcremie" height="145" width="145">
+                            <img src="presentation/alcremie_shiny.png" alt="alcremie_shiny" height="145" width="145">
                         </div>
-
                     </p>
                 </div>
             </div>
