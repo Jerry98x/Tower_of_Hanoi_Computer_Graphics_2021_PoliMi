@@ -445,6 +445,8 @@ var main = function (){
 
             gl.uniformMatrix4fv(object.drawInfo.vertexMatrixPositionHandle, gl.FALSE, utils.transposeMatrix(worldViewMatrix)); 
             lightPosTransformed = utils.multiplyMatrixVector(viewMatrix, lightPos);    //point
+
+            generalLightTransformed = utils.multiplyMatrixVector(viewMatrix, positionLight);
             
 
             gl.uniformMatrix4fv(object.drawInfo.matrixLocation, gl.FALSE, utils.transposeMatrix(projMatrix));
@@ -452,14 +454,13 @@ var main = function (){
 
             gl.uniform3fv(object.drawInfo.eyePositionHandle, eyePos);
 
-            
 
 
             // Shaders for lights
             gl.uniform3fv(materialDiffColorHandle, materialDiffColor);
 
             gl.uniform3fv(lightColorHandleSpot, spotLightColorGeneral); //general spot
-            gl.uniform3fv(lightPositionHandle, positionLight);  //general spot
+            gl.uniform3fv(lightPositionHandle, generalLightTransformed.slice(0,3));  //general spot
 
 
             //direct
