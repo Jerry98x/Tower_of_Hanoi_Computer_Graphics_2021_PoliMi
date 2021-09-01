@@ -436,7 +436,7 @@ var main = function (){
             var eyePos = [cx, cy, cz];
 
             var worldViewMatrix = utils.multiplyMatrices(viewMatrix, object.node.worldMatrix);
-            var projMatrix = utils.multiplyMatrices(perspectiveMatrix, worldViewMatrix);
+            projMatrix = utils.multiplyMatrices(perspectiveMatrix, worldViewMatrix);
             var normalMatrix = utils.invertMatrix(utils.transposeMatrix(worldViewMatrix));
 
             //Transform from World Space to Camera Space
