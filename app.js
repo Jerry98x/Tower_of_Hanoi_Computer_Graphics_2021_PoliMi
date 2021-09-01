@@ -1,47 +1,15 @@
-var gl;
-var baseDir;
-var shaderDir;
-var program;
-
-
-
-var positionLight = [-100.0, -100.0, -100.0];
-var spotLightColorGeneral = [1.0, 1.0, 1.0];
-
-
-//direct
-var dirLightTheta = initialDirLightTheta;
-var dirLightPhi = initialDirLightPhi;
-var directionalLight;
-var directionalLightColor = [1.0, 1.0, 1.0];
-var lightDirectionHandle;
-var directionalLightTransformed;
-var lightColorHandleDir;
-
-//point
-var pointLightColor = [1.0, 1.0, 1.0];
-var lightPos = [initialLightPos[0], initialLightPos[1], initialLightPos[2], initialLightPos[3]];
-var lightPosTransformed;
-var lightTarget = initialLightTarget;
-var lightDecay = initialLightDecay;
-var lightPosLocation;
-var lightTargetLocation;
-var lightDecayLocation;
-var lightColorHandlePoint;
-
-
-//constant ambient
-var ambientLightColor = [0.2, 0.2, 0.2];
-
-
+/**
+ * When the mouse is clicked, it makes a disk float from the clicked rod or land on it (if possible).
+ * @param {*} event 
+ */
 function doMouseDown(event) {
     if(!gameEnded && gameStarted) {
         lastMouseX = event.clientX;
-        if (!movingKey && !floating && !goingUp && !goingDown) {
+        if (!movingKey && !floating && !goingUp && !goingDown) { //no floating disc
             startingRod = getPointedRod(event);
-            if (startingRod != 0) {
+            let rod = getRod(startingRod);
+            if (startingRod != 0 && rod.length > 0) {
                 movingMouse = true;
-                let rod = getRod(startingRod);
                 floatingDisc = rod.discs[rod.length - 1];
                 floatingDisc.float();
                 floating = true;
@@ -60,15 +28,16 @@ function doMouseDown(event) {
     }
 }
 
-var okMsg = 'ALLOWED';
-var notOkMsg = 'NOT ALLOWED';
-
+/**
+ * Moves a floating disc (if available) accordingly to the cursor movement.
+ * @param {*} event 
+ */
 function doMouseMove(event) {
     if(!gameEnded && gameStarted) {
         if (movingMouse && !movingKey && !goingUp && !goingDown) {
             let tmpRod = getPointedRod(event);
             var dx = mouseWorldX - currentDiscX;
-            if (dx != 0) {
+            if (dx != 0 && floating) {
                 floatingDisc.translate(dx, 0.0, 0.0);
                 updateAllowed(tmpRod);
             }
@@ -78,6 +47,10 @@ function doMouseMove(event) {
     }
 }
 
+/**
+ * Update the on-screen message about the feasibility of a landing on the pointed rod.
+ * @param {*} pointedRod 
+ */
 function updateAllowed(pointedRod){
     let allowedPane = document.getElementById('allowedPane');
     if(pointedRod != 0 && getRod(pointedRod).canAddDisc(floatingDisc)){
@@ -93,8 +66,11 @@ function updateAllowed(pointedRod){
     }
 }
 
+/**
+ * Computes the projection on the X axis of the cursor.
+ * @param {*} event 
+ */
 function updateMouseWorldX(event){
-    //This is a way of calculating the coordinates of the click in the canvas taking into account its possible displacement in the page
     var top = 0.0, left = 0.0;
     canvas = gl.canvas;
     while (canvas && canvas.tagName !== 'BODY') {
@@ -105,11 +81,11 @@ function updateMouseWorldX(event){
     var x = event.clientX - left;
     var y = event.clientY - top;
 
-    //Here we calculate the normalised device coordinates from the pixel coordinates of the canvas
+    //Compute the normalized device coordinates from the pixel coordinates of the canvas
     var normX = (2*x)/ gl.canvas.width - 1;
     var normY = 1 - (2*y) / gl.canvas.height;
 
-    //We need to go through the transformation pipeline in the inverse order so we invert the matrices
+    //Inversion of the transformation pipeline
     var projInv = utils.invertMatrix(perspectiveMatrix);
     var viewInv = utils.invertMatrix(viewMatrix);
 
@@ -126,16 +102,21 @@ function updateMouseWorldX(event){
 
     //We find the direction expressed in world coordinates by multiplying with the inverse of the view matrix
     var rayDir = utils.multiplyMatrixVector(viewInv, rayEyeCoords);
-    var normalisedRayDir = utils.normalize(rayDir);
+    var normalizedRayDir = utils.normalize(rayDir);
     //The ray starts from the camera in world coordinates
     var rayStartPoint = [cx, cy, cz];
     //We iterate on all the objects in the scene to check for collisions
-    if(normalisedRayDir[2] != 0) {
-        let t = (dzBase - rayStartPoint[2]) / normalisedRayDir[2];
-        mouseWorldX = rayStartPoint[0] + t * normalisedRayDir[0];
+    if(normalizedRayDir[2] != 0) {
+        let t = (dzBase - rayStartPoint[2]) / normalizedRayDir[2];
+        mouseWorldX = rayStartPoint[0] + t * normalizedRayDir[0];
     }
 }
 
+/**
+ * Computes the index of the pointed rod.
+ * @param {*} event 
+ * @returns computed index or 0 if there's no valid rod.
+ */
 function getPointedRod(event) {
     updateMouseWorldX(event);
     if (-outerX < mouseWorldX && mouseWorldX < -innerX) {
@@ -148,19 +129,27 @@ function getPointedRod(event) {
     return 0;
 }
 
+/**
+ * Updates the quaternion representing the rotation of the base object.
+ * @param {*} rvx 
+ * @param {*} rvy 
+ * @param {*} rvz 
+ * @returns the updated quaternion as a 4x4 matrix.
+ */
 function getRotatedMatrix(rvx, rvy, rvz) {
-
     var deltaq = Quaternion.fromEuler(utils.degToRad(rvz), utils.degToRad(rvx), utils.degToRad(rvy), order = 'ZXY');
-
     baseq = deltaq.mul(baseq);
-
     return baseq.toMatrix4();
 }
 
+/**
+ * Allows the gameplay by using the keyboard; matches each usable key with the corresponding function.
+ * @param {*} event 
+ */
 function keyFunctionDown(event) {
     switch (event.keyCode) {
         case 68://D
-            //move camera to the right
+            //rotate object to the left
             if (!movingMouse && yRotation - step > -45) {
                 yRotation -= step;
                 objects[0].node.localMatrix = getRotatedMatrix(0.0, -step, 0.0);
@@ -168,7 +157,7 @@ function keyFunctionDown(event) {
             }
             break;
         case 65://A
-            //move camera to the left
+            //rotate object to the righ
             if (!movingMouse && yRotation + step < 45) {
                 yRotation += step;
                 objects[0].node.localMatrix = getRotatedMatrix(0.0, step, 0.0);
@@ -189,7 +178,7 @@ function keyFunctionDown(event) {
             }
             break;
         case 49://1
-            //rod 1
+            //select rod 1
             if (!gameEnded && gameStarted) {
                 if (!movingMouse && !floating && startRod.length > 0) {
                     movingKey = true;
@@ -204,7 +193,7 @@ function keyFunctionDown(event) {
             }
             break;
         case 50://2
-            //rod 2
+            //select rod 2
             if (!gameEnded && gameStarted) {
                 if (!movingMouse && !floating && middleRod.length > 0) {
                     movingKey = true;
@@ -219,7 +208,7 @@ function keyFunctionDown(event) {
             }
             break;
         case 51://3
-            //rod 3
+            //select rod 3
             if (!gameEnded && gameStarted) {
                 if (!movingMouse && !floating && endRod.length > 0) {
                     movingKey = true;
@@ -233,7 +222,7 @@ function keyFunctionDown(event) {
                 }
             }
             break;
-        case 37:
+        case 37: //arrow left
             //shift left
             if (!gameEnded && gameStarted) {
                 if (!movingMouse && floating && currentRod != 1) {
@@ -243,7 +232,7 @@ function keyFunctionDown(event) {
                 }
             }
             break;
-        case 39:
+        case 39: //arrow right
             //shift right
             if (!gameEnded && gameStarted) {
                 if (!movingMouse && floating && currentRod != 3) {
@@ -253,7 +242,7 @@ function keyFunctionDown(event) {
                 }
             }
             break;
-        case 13:
+        case 13: //enter
             //accept rod
             if (!gameEnded && gameStarted) {
                 if (!movingMouse && floating && getRod(currentRod).canAddDisc(floatingDisc)) {
@@ -278,6 +267,11 @@ function computeModelData() {
     }
 }
 
+/**
+ * Creates VBOs and VAOs.
+ * @param {*} object 
+ * @returns 
+ */
 function createBuffers(object) {
     var vao = gl.createVertexArray();
     gl.bindVertexArray(vao);
@@ -330,6 +324,7 @@ var main = function (){
     window.addEventListener("mousemove", doMouseMove, false);
     window.addEventListener("keydown", keyFunctionDown, false);
 
+    //pair the position variables of the shaders with the js variables
     objects.forEach(function (object) {
         gl.useProgram(object.drawInfo.programInfo);
         object.drawInfo.eyePositionHandle = gl.getUniformLocation(object.drawInfo.programInfo, 'eyePosition');
@@ -344,15 +339,16 @@ var main = function (){
 
     computeModelData();
 
+    //create buffers
     objects.forEach(function (object) {
         object.drawInfo.vertexArray = createBuffers(object);
-        // End binding sequence
         gl.bindVertexArray(null);
     });
 
+    //pair the lights variables of the shaders with the js variables
     objects.forEach(function (object) {
         gl.useProgram(object.drawInfo.programInfo);
-        // Shaders for direct light for room and scenary
+
         materialDiffColorHandle = gl.getUniformLocation(program, 'mDiffColor');
         lightPositionHandle = gl.getUniformLocation(program, 'lightPosition');
         lightColorHandleSpot = gl.getUniformLocation(program, 'lightColorSpot');
@@ -374,10 +370,13 @@ var main = function (){
     //
     // Main render loop
     //
-    requestAnimationFrame(drawScene);
+    requestAnimationFrame(drawScene); //creates animation frame
 
+    //populate the scene
     function drawScene() {
 
+
+        //animations for discs (rising and landing)
         if(goingUp) {
             if (deltaY+stepY >= floatingHeight) {
                 floatingDisc.translate(0.0, stepY, 0.0);
@@ -413,7 +412,7 @@ var main = function (){
         var aspect = gl.canvas.width / gl.canvas.height;
         perspectiveMatrix = utils.MakePerspective(90.0, aspect, 0.1, 100.0);
 
-        //added
+
         // update WV matrix
         var cameraPosition = [cx, cy, cz];
         var target = [0.0, eyeHeight, 0.0];
@@ -422,6 +421,7 @@ var main = function (){
         var viewMatrix = utils.invertMatrix(cameraMatrix);
 
 
+        //compute light direction (for directional light)
         directionalLight = [Math.cos(utils.degToRad(dirLightTheta)) * Math.cos(utils.degToRad(dirLightPhi)), Math.sin(utils.degToRad(dirLightTheta)), Math.cos(utils.degToRad(dirLightTheta)) * Math.sin(utils.degToRad(dirLightPhi))];        
 
 
@@ -456,7 +456,7 @@ var main = function (){
 
 
             // Shaders for lights
-            gl.uniform3fv(materialDiffColorHandle, [1.0, 1.0, 1.0]);
+            gl.uniform3fv(materialDiffColorHandle, materialDiffColor);
 
             gl.uniform3fv(lightColorHandleSpot, spotLightColorGeneral); //general spot
             gl.uniform3fv(lightPositionHandle, positionLight);  //general spot
@@ -502,15 +502,12 @@ var main = function (){
             gl.activeTexture(gl.TEXTURE0);
             gl.bindTexture(gl.TEXTURE_2D, object.drawInfo.textureRef[0]);
             gl.uniform1i(object.drawInfo.textLocation, 0);
-            //------------------------------
 
             gl.bindVertexArray(object.drawInfo.vertexArray);
 
             gl.drawElements(gl.TRIANGLES, object.drawInfo.indices.length, gl.UNSIGNED_SHORT, 0);
 
         });
-
-        //------------------------------------
 
         window.requestAnimationFrame(drawScene);
     }
@@ -569,7 +566,6 @@ var init = async function() {
     //
     // Create shaders & program
     //
-    // Program for room and scenary
     await utils.loadFiles([shaderDir + 'vs.glsl', shaderDir + 'fs.glsl'], function (shaderText) {
         var vertexShader = utils.createShader(gl, gl.VERTEX_SHADER, shaderText[0]);
         var fragmentShader = utils.createShader(gl, gl.FRAGMENT_SHADER, shaderText[1]);
@@ -618,6 +614,9 @@ function start() {
     init();
 }
 
+/**
+ * Sets the minimum of necessary moves to win with a fixed number of discs.
+ */
 function setMinMoves(){
     maxLevel = document.getElementById('numberOfDiscs').value;
     let minMoves = 0;
