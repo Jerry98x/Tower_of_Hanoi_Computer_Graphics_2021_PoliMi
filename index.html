@@ -5,11 +5,11 @@
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <title>Tower of Hanoi</title>
     <link rel="icon" href=presentation/hanoi_icon.png>
-    <!-- <link rel="stylesheet" href=presentation/my_style.css> -->
+    <link rel="stylesheet" href=presentation/my_style.css>
 </head>
 <body>
 
-    <table style="border:2.5px dotted blue">
+    <table style="border: 2.5px dotted blue">
         <tr>
             <div>
                 
@@ -20,7 +20,6 @@
                         </canvas>
 
                         <div id="end" style="position: absolute; z-index: 1; left: 225px; top: 80px; width:700px; height:100px; text-align: center; background-color: white; border-style: dashed; border-color: green; opacity: 0.7; padding: 5px 10px 5px 10px; overflow:auto; visibility: hidden;">
-                            <!-- <img src="presentation/gmax_finale.gif" alt="alcremie" height="140" width="650"> -->
                             <p>
                                 <b style="font-family: Arial, Helvetica, sans-serif; font-size: larger; color: black">
                                     <output id="result">
@@ -64,6 +63,20 @@
                         </li>
                     </ol>
                     </p>
+
+                    <p>
+                        <div>
+                            <img src="presentation/alcremie.png" alt="alcremie" height="30" width="30">
+                            <img src="presentation/alcremie_shiny.png" alt="alcremie_shiny" height="30" width="30">
+                            <img src="presentation/alcremie.png" alt="alcremie" height="30" width="30">
+                            <img src="presentation/alcremie_shiny.png" alt="alcremie_shiny" height="30" width="30">
+                            <img src="presentation/alcremie.png" alt="alcremie" height="30" width="30">
+                            <img src="presentation/alcremie_shiny.png" alt="alcremie_shiny" height="30" width="30">
+                            <img src="presentation/alcremie.png" alt="alcremie" height="30" width="30">
+                            <img src="presentation/alcremie_shiny.png" alt="alcremie_shiny" height="30" width="30">
+                        </div>
+                    </p>
+
                     <p>
                         <b style="font-family: Arial, Helvetica, sans-serif; font-size: larger; color: black">Controls</b>
                         <ul style="font-family: Helvetica; text-align: left">
@@ -107,26 +120,28 @@
                     </p>
 
                     <p>
-                        <b style="font-family: Arial, Helvetica, sans-serif; font-size: larger; color: black">Number of discs:</b>
+                        <b style="font-family: Arial, Helvetica, sans-serif; font-size: larger; color: black">Settings</b>
+                    </p>
+                    <p style="font-family: Arial, Helvetica, sans-serif; color: black">
+                        Number of discs:
                         <input type="number" id="numberOfDiscs" min="1" max="7" step="1" value="7">
                     </p>
-                    <p>
-                        <b style="font-family: Arial, Helvetica, sans-serif; font-size: larger; color: black">Total moves allowed (0 = ∞):</b><br>
+                    <p style="font-family: Arial, Helvetica, sans-serif; color: black">
+                        Total moves allowed (0 = ∞):
                         <input type="number" id="allowedMoves" min="0" max="999" step="1" value="0">
                     </p>
                     <p>
-                        <button type="button" id="minMoves" onclick="setMinMoves()">SET MINIMUM OF MOVES BASED ON THE NUMBER OF DISCS</button>
+                        <button class="button3" type="button" id="minMoves" onclick="setMinMoves()">SET MINIMUM OF MOVES BASED ON THE NUMBER OF DISCS</button>
                     </p>
 
-                    <p>
-                        <b style="font-family: Arial, Helvetica, sans-serif; font-size: larger; color: black">Moves done:
+                    <p style="font-family: Arial, Helvetica, sans-serif; color: black">
+                        Moves done:
                         <output id="numberOfMoves">
                         </output>
-                        </b>
                     </p>
 
                     <p>
-                        <button style="background-color: green" type="button" id="button" onclick="start()">START</button>
+                        <button class="button1" style="background-color: green" type="button" id="button" onclick="start()">START</button>
                     </p>
 
                     <p>
@@ -163,29 +178,15 @@
                     </p>
 
                     <div id="directional_custom">
-                        <!-- <p>
-                            <b style="font-size: medium;">Directional</b>
-                            <br>
-                            Left <input autocomplete="off" type="range" id="horizontal-rotation" min="0" max="1" step="0.01" value="0.5"> Right <br/>
-                            Down <input autocomplete="off" type="range" id="vertical-rotation" min="0" max="1" step="0.01" value="0.5"> Up
-                        </p> -->
+
                     </div>
 
                     <div id="point_custom">
-                        <!-- <p>
-                            <b style="font-size: medium;">Point</b>
-                            <br>
-                            X <input autocomplete="off" type="range" id="horizontalrotation" min="0" max="1" step="0.01" value="0.5"><br>
-                            Y <input autocomplete="off" type="range" id="vertical-rotation" min="0" max="1" step="0.01" value="0.5"><br>
-                            Z <input autocomplete="off" type="range" id="horizontal-rotation" min="0" max="1" step="0.01" value="0.5"><br>
-                            Decay (β) <input autocomplete="off" type="range" id="horizontal-rotation" min="0" max="1" step="0.01" value="0.5"><br>
-                            Target distance (g) <input autocomplete="off" type="range" id="horizontal-rotation" min="0" max="1" step="0.01" value="0.5">
-                            
-                        </p> -->
+
                     </div>
 
                     <p>
-                        <button style="background-color: yellow" type="button" id="button" onclick="resetLightCustomization()">RESET LIGHTS</button>
+                        <button class="button2" style="background-color: yellow" type="button" id="button" onclick="resetLightCustomization()">RESET LIGHTS</button>
                     </p>
                     
 

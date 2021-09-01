@@ -5,7 +5,7 @@ var program;
 
 
 
-var positionLight = [-100.0, -900.0, -100.0];
+var positionLight = [-100.0, -100.0, -100.0];
 var spotLightColorGeneral = [1.0, 1.0, 1.0];
 
 
@@ -365,8 +365,6 @@ var main = function (){
         lightDecayLocation = gl.getUniformLocation(program, "LADecay");
         lightColorHandlePoint = gl.getUniformLocation(program, 'LAlightColor');
 
-
-
         ambientLightColorHandle = gl.getUniformLocation(program, 'ambientLightColor');
     });
 
@@ -423,11 +421,8 @@ var main = function (){
         var cameraMatrix = utils.LookAt(cameraPosition, target, up);
         var viewMatrix = utils.invertMatrix(cameraMatrix);
 
-        
-        directionalLight = [Math.cos(utils.degToRad(dirLightTheta)) * Math.cos(utils.degToRad(dirLightPhi)), Math.sin(utils.degToRad(dirLightTheta)), Math.cos(utils.degToRad(dirLightTheta)) * Math.sin(utils.degToRad(dirLightPhi))];
-        //directionalLight = [Math.sin(utils.degToRad(dirLightTheta)) * Math.cos(utils.degToRad(dirLightPhi)), Math.cos(utils.degToRad(dirLightTheta)), Math.sin(utils.degToRad(dirLightTheta)) * Math.sin(utils.degToRad(dirLightPhi))];
 
-        
+        directionalLight = [Math.cos(utils.degToRad(dirLightTheta)) * Math.cos(utils.degToRad(dirLightPhi)), Math.sin(utils.degToRad(dirLightTheta)), Math.cos(utils.degToRad(dirLightTheta)) * Math.sin(utils.degToRad(dirLightPhi))];        
 
 
         // Update all world matrices in the scene graph
@@ -502,9 +497,6 @@ var main = function (){
             }
 
 
-
-
-
             // Render the Texture
 
             gl.activeTexture(gl.TEXTURE0);
@@ -543,6 +535,7 @@ var init = async function() {
     deltaX = 0;
     deltaY = 0;
     numberOfMoves = 0;
+    document.getElementById('numberOfMoves').innerHTML = numberOfMoves.toString();
     allowedMoves = document.getElementById('allowedMoves').value;
     maxLevel = document.getElementById('numberOfDiscs').value;
 
@@ -564,9 +557,7 @@ var init = async function() {
     //
     utils.resizeCanvasToPercentage(gl.canvas, 0.75, 0.95);
 
-
     // var optionsColumn = document.getElementById("options");
-
     // utils.resizeElementToPercentageStyle(optionsColumn, 0.25, 0.05);
 
 
@@ -593,21 +584,10 @@ var init = async function() {
     await serializeModel();
     getModel();
 
-
-    // Initialize lights
-    //initiLight();
-
     main();
 }
 
 function start() {
-    document.getElementById("directBox").checked="";
-    document.getElementById("pointBox").checked="";
-    document.getElementById("ambientBox").checked="";
-
-    document.getElementById("directional_custom").innerHTML = "";
-    document.getElementById("point_custom").innerHTML = "";
-
     document.getElementById("end").style.visibility="hidden";
 
     gameStarted = true;
@@ -627,6 +607,7 @@ function start() {
     deltaX = 0;
     deltaY = 0;
     numberOfMoves = 0;
+    document.getElementById('numberOfMoves').innerHTML = numberOfMoves.toString();
     allowedMoves = document.getElementById('allowedMoves').value;
     maxLevel = document.getElementById('numberOfDiscs').value;
     objects = [];
