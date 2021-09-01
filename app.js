@@ -350,8 +350,8 @@ var main = function (){
         gl.useProgram(object.drawInfo.programInfo);
 
         materialDiffColorHandle = gl.getUniformLocation(program, 'mDiffColor');
-        lightPositionHandle = gl.getUniformLocation(program, 'lightPosition');
-        lightColorHandleSpot = gl.getUniformLocation(program, 'lightColorSpot');
+        lightPositionGeneralHandle = gl.getUniformLocation(program, 'lightPositionGeneral');
+        lightColorHandleGeneral = gl.getUniformLocation(program, 'lightColorGeneral');
 
         lightDirectionHandle = gl.getUniformLocation(program, 'lightDirection');
         lightColorHandleDir = gl.getUniformLocation(program, 'lightColor');
@@ -446,7 +446,7 @@ var main = function (){
             gl.uniformMatrix4fv(object.drawInfo.vertexMatrixPositionHandle, gl.FALSE, utils.transposeMatrix(worldViewMatrix)); 
             lightPosTransformed = utils.multiplyMatrixVector(viewMatrix, lightPos);    //point
 
-            generalLightTransformed = utils.multiplyMatrixVector(viewMatrix, positionLight);
+            generalLightPosTransformed = utils.multiplyMatrixVector(viewMatrix, positionLightGeneral);
             
 
             gl.uniformMatrix4fv(object.drawInfo.matrixLocation, gl.FALSE, utils.transposeMatrix(projMatrix));
@@ -459,8 +459,8 @@ var main = function (){
             // Shaders for lights
             gl.uniform3fv(materialDiffColorHandle, materialDiffColor);
 
-            gl.uniform3fv(lightColorHandleSpot, spotLightColorGeneral); //general spot
-            gl.uniform3fv(lightPositionHandle, generalLightTransformed.slice(0,3));  //general spot
+            gl.uniform3fv(lightColorHandleGeneral, lightColorGeneral); //general
+            gl.uniform3fv(lightPositionGeneralHandle, generalLightPosTransformed.slice(0,3));  //general
 
 
             //direct

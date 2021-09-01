@@ -12,8 +12,8 @@ uniform sampler2D sampler;
 
 uniform vec3 mDiffColor; //material diffuse color
 
-uniform vec3 lightPosition;
-uniform vec3 lightColorSpot;
+uniform vec3 lightPositionGeneral;
+uniform vec3 lightColorGeneral;
 
 uniform vec3 lightDirection; // directional light direction vec
 uniform vec3 lightColor; //directional light color 
@@ -33,7 +33,7 @@ void main() {
   vec3 textureCol = texture(sampler, uvCoordinate).rgb;
 
 
-  vec3 spotLightDirection = normalize(lightPosition - fsPos); //general light of the scene
+  vec3 generalLightDirection = normalize(lightPositionGeneral - fsPos); //general light of the scene
 
 
   vec3 nEyeDirection = normalize(-fsPos); //direct
@@ -47,7 +47,7 @@ void main() {
 
   vec3 lambertColorDir = diffColor * lightColor * dot(-lightDirection, nNormal); //direct
   vec3 lambertColorPoint = clamp(dot(-lightDirNorm, nNormal), 0.0, 1.0) * diffColor * lightColorPoint; //point
-  vec3 lambertColor = clamp(dot(nNormal, spotLightDirection), 0.0, 1.0) * diffColor * lightColorSpot + clamp(lambertColorDir, 0.0, 1.0) + clamp(lambertColorPoint, 0.0, 1.0) + ambientLightColor;
+  vec3 lambertColor = clamp(dot(nNormal, generalLightDirection), 0.0, 1.0) * diffColor * lightColorGeneral + clamp(lambertColorDir, 0.0, 1.0) + clamp(lambertColorPoint, 0.0, 1.0) + ambientLightColor;
 
   outColor = vec4(clamp(lambertColor, 0.0, 1.0), 1.0);
 }
