@@ -44,10 +44,11 @@ void main() {
 
 
   vec3 diffColor = mDiffColor * 0.1 + textureCol * 0.9;
+  vec3 ambColor = ambientLightColor * 0.2 + textureCol * 0.8;
 
-  vec3 lambertColorDir = diffColor * lightColor * dot(-lightDirection, nNormal); //direct
+  vec3 lambertColorDir = diffColor * lightColor * clamp(dot(-lightDirection, nNormal), 0.0, 1.0); //direct
   vec3 lambertColorPoint = clamp(dot(-lightDirNorm, nNormal), 0.0, 1.0) * diffColor * lightColorPoint; //point
-  vec3 lambertColor = clamp(dot(nNormal, generalLightDirection), 0.0, 1.0) * diffColor * lightColorGeneral + clamp(lambertColorDir, 0.0, 1.0) + clamp(lambertColorPoint, 0.0, 1.0) + ambientLightColor;
+  vec3 lambertColor = clamp(dot(nNormal, generalLightDirection), 0.0, 1.0) * diffColor * lightColorGeneral + clamp(lambertColorDir, 0.0, 1.0) + clamp(lambertColorPoint, 0.0, 1.0) + ambientLightColor * ambColor;
 
   outColor = vec4(clamp(lambertColor, 0.0, 1.0), 1.0);
 }
