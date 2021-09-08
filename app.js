@@ -553,7 +553,9 @@ var init = async function() {
     //
     // General setup
     //
-    utils.resizeCanvasToPercentage(gl.canvas, 0.75, 0.95);
+    //utils.resizeCanvasToPercentage(gl.canvas, 0.75, 0.95);
+
+    utils.resizeCanvasDynamicHor(gl.canvas, document.getElementById('options').style.width, 0.95, 64)
 
     // var optionsColumn = document.getElementById("options");
     // utils.resizeElementToPercentageStyle(optionsColumn, 0.25, 0.05);
