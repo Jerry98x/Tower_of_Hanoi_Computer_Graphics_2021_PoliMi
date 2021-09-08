@@ -9,3 +9,5 @@ It is possible to customize the game, changing the number of disks or the number
 
 The lights of the scene are customizable as well.<br>
 3D objects and lights are implemented in **_camera space_**.
+
+![alt text](https://github.com/Jerry98x/Tower_of_Hanoi_Computer_Graphics_2021_PoliMi/blob/main/hanoi.png?raw=true)
