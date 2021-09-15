@@ -2,7 +2,7 @@
  * When the mouse is clicked, it makes a disk float from the clicked rod or land on it (if possible).
  * @param {*} event 
  */
-function doMouseDown(event) {
+ function doMouseDown(event) {
     if(!gameEnded && gameStarted) {
         lastMouseX = event.clientX;
         if (!movingKey && !floating && !goingUp && !goingDown) { //no floating disc
@@ -534,8 +534,18 @@ var init = async function() {
     deltaY = 0;
     numberOfMoves = 0;
     document.getElementById('numberOfMoves').innerHTML = numberOfMoves.toString();
+
     allowedMoves = document.getElementById('allowedMoves').value;
+    if(allowedMoves < 0 || allowedMoves == "") {
+        allowedMoves = 0;
+        document.getElementById('allowedMoves').value = 0;
+    }
+
     maxLevel = document.getElementById('numberOfDiscs').value;
+    if(!(maxLevel > 0 && maxLevel <= 7)) {
+        maxLevel = 7;
+        document.getElementById('numberOfDiscs').value = 7;
+    }
 
     var path = window.location.pathname;
     var page = path.split("/").pop();
@@ -607,8 +617,18 @@ function start() {
     deltaY = 0;
     numberOfMoves = 0;
     document.getElementById('numberOfMoves').innerHTML = numberOfMoves.toString();
+
     allowedMoves = document.getElementById('allowedMoves').value;
+    if(allowedMoves < 0 || allowedMoves == "") {
+        allowedMoves = 0;
+        document.getElementById('allowedMoves').value = 0;
+    }
+
     maxLevel = document.getElementById('numberOfDiscs').value;
+    if(!(maxLevel > 0 && maxLevel <= 7) || maxLevel == "") {
+        maxLevel = 7;
+        document.getElementById('numberOfDiscs').value = 7;
+    }
     objects = [];
     models = [];
     modelsSerialized = [];
