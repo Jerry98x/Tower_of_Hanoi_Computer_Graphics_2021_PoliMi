@@ -1,5 +1,5 @@
 # Tower of Hanoi
-Project for Computer Graphics course (2020/2021) at PoliMi: Tower of Hanoi
+Project for Computer Graphics course (2020/2021) at PoliMi (Computer Science and Engineerign): Tower of Hanoi
 
 [Andrea Gerosa](https://github.com/Jerry98x)<br>
 [Nicolò Fontana](https://github.com/NicoloFontana)
